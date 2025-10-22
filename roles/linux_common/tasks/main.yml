@@ -15,32 +15,15 @@
     name:
       - amazon-ec2-utils
       - fontconfig
-      - jq
       - net-tools
       - nvme-cli
       - tar
-      - yq
-
+      - curl
+      
 - name: Create product group
   ansible.builtin.group:
     name: "{{ atl_product_user }}"
     gid: "{{ atl_product_user_uid }}"
-
-- name: Create product user
-  ansible.builtin.user:
-    name: "{{ atl_product_user }}"
-    uid: "{{ atl_product_user_uid }}"
-    group: "{{ atl_product_user }}"
-    comment: "Product runtime user"
-
-- name: Stop systemd-cleanup deleting the jvm socket file
-  ansible.builtin.copy:
-    src: java.conf
-    dest: "/usr/lib/tmpfiles.d/java.conf"
-    owner: root
-    group: root
-    mode: "644"
-  register: systemd_config_changed
 
 - name: Force systemd to reload daemon configuration
   ansible.builtin.systemd_service:

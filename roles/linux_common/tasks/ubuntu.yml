@@ -3,11 +3,9 @@
 - name: Install common Ubuntu support packages
   ansible.builtin.apt:
     name:
+      - curl
       - fontconfig
       - git
-      - libxml2-utils
-      - pwgen
-      - xmlstarlet
     
 - name: Customizations for root .bashrc
   ansible.builtin.blockinfile:

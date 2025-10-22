@@ -1,0 +1,71 @@
+---
+
+- name: NFS mount for goaccess data and web root
+  ansible.posix.mount:
+    src: "{{ efs_path }}"
+    path: "{{ efs_mountpoint }}"
+    fstype: nfs
+    state: mounted
+    opts: noresvport,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev
+    
+- name: Create directories needed by log processing script
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ goaccess_db_root }}"
+    - "{{ web_root }}"
+
+    
+- name: Set up goaccess repo
+  block:
+    - name: Install goaccess repo key
+      ansible.builtin.get_url:
+        url: https://deb.goaccess.io/gnugpg.key
+        dest: /etc/apt/keyrings/goaccess.asc
+
+    - name: Add goaccess repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/goaccess.gpg arch=$(dpkg --print-architecture)] https://deb.goaccess.io/ $(lsb_release -cs) main"
+        state: present
+
+- name: Install latest goaccess
+  ansible.builtin.apt:
+    name: goaccess
+    state: latest
+    update_cache: True
+
+- name: Install basic python environment
+    ansible.builtin.apt:
+      name:
+        - python3
+        - python3-pip
+        - python3-venv
+
+- name: Create python venv for goaccess log processing script
+  ansible.builtin.pip:
+    virtualenv: "{{ goaccess_process_logs_install_dir }}"
+    name:
+      - botocore
+      - boto3
+      - aws-log-parser
+
+- name: Install goaccess log processing script
+  ansible.builtin.template:  
+    src: goaccess_parse_alb_logs.py.j2
+    dest: "{{ goaccess_process_logs_install_dir }}/goaccess_parse_alb_logs.py"
+    owner: "root"
+    group: "root"
+    mode: '0755'
+
+- name: Link goaccess log processing script to /usr/local/bin
+  ansible.builtin.file:
+    src: "{{ goaccess_process_logs_install_dir }}/goaccess_parse_alb_logs.py"
+    dest: "/usr/local/bin/goaccess_parse_alb_logs.py"
+    state: link
+
+- name: Cron for goaccess_parse_alb_logs.py
+  ansible.builtin.cron:
+    name: "goaccess_parse_alb_logs"
+    minute: "{{ goaccess_parse_alb_logs_cron_minutes }}"
+    job: "/usr/local/bin/goaccess_parse_alb_logs.py 2>&1 | logger -t goaccess_parse_alb_logs"
