@@ -1,0 +1,21 @@
+---
+
+- name: Install common Ubuntu support packages
+  ansible.builtin.apt:
+    name:
+      - fontconfig
+      - git
+      - libxml2-utils
+      - pwgen
+      - xmlstarlet
+    
+- name: Customizations for root .bashrc
+  ansible.builtin.blockinfile:
+     path: /root/.bashrc
+     append_newline: true
+     prepend_newline: true
+     marker: "### {mark} ANSIBLE MANAGED BLOCK ###"
+     block: |
+       # Source user data env vars into environment for subsequent ansible runs
+       tmpfile=$(mktemp); grep export /var/lib/cloud/instance/user-data.txt > $tmpfile; source $tmpfile; rm $tmpfile
+       

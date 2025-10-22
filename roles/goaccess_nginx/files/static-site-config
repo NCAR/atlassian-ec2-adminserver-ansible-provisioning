@@ -1,0 +1,11 @@
+# Fixme restrict to ucar network
+
+server {
+    listen 80;
+    server_name your_domain.com;
+
+    location / {
+        root /var/www/html;
+        index index.html;
+    }
+}
