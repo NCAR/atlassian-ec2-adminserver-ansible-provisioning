@@ -17,7 +17,7 @@ alb_access_logs_prefix: "{{ lookup('env', 'ALB_ACCESS_LOGS_PREFIX') }}"
 aws_region: "{{ lookup('env', 'AWS_REGION') }}"
 s3_bucket: "{{ lookup('env', 'S3_BUCKET') }}"
 efs_path: "{{ lookup('env', 'EFS_PATH') }}"
-nginx_domain_name: "{{ lookup('env', 'NGINX_DOMAIN_NAME') }}"
+nginx_domain_name: "{{ lookup('env', 'PROXY_NAME') }}"
 vpc_cidr: "{{ lookup('env', 'VPC_CIDR') }}"
 
 #
