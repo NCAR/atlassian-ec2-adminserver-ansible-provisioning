@@ -4,6 +4,7 @@
   ansible.builtin.apt:
     name:
       - amazon-ec2-utils
+      - amazon-efs-utils      
       - fontconfig
       - git
       - jq
