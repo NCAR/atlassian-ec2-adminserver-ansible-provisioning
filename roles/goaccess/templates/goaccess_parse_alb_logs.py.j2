@@ -1,0 +1,133 @@
+#!{{ goaccess_process_logs_install_dir }}/venv/bin/python3
+
+import os
+import sys
+import boto3
+import subprocess
+import gzip
+import tempfile
+from aws_log_parser import AwsLogParser, LogType
+
+BUCKET = "{{ s3_bucket }}"
+PREFIX = "{{ alb_access_logs_prefix }}"
+DB_ROOT = "{{ goaccess_db_root }}"
+WEB_ROOT = "{{ web_root }}"
+
+LAST_KEY_FILE = "${DB_ROOT}/last_key"
+
+GOACCESS_ARGS = [
+    "/usr/local/bin/goaccess",
+    "--no-global-config",
+    "--persist",
+    "--agent-list",
+    "--log-format", "AWSALB",
+    "--log-file", "-",
+]
+
+os.makedirs(DB_ROOT, exist_ok=True)
+os.makedirs(WEB_ROOT, exist_ok=True)
+
+s3_client = boto3.client('s3')
+
+list_params = {
+    "Bucket": BUCKET,
+    "Prefix": PREFIX
+}
+
+if os.path.exists(LAST_KEY_FILE):
+    with open(LAST_KEY_FILE, "r") as l:
+        list_params["StartAfter"] = l.readline().strip()
+    l.close()
+
+paginator = s3_client.get_paginator('list_objects_v2')
+response_iterator = paginator.paginate(**list_params)
+
+objects = []
+for response in response_iterator:
+    if 'Contents' in response:
+        for obj in response['Contents']:
+            objects.append(obj)
+            
+sorted_objects = sorted(objects, key=lambda x: x['LastModified'])
+keys = [ x["Key"] for x in sorted_objects ]
+
+
+print(">>> Found " + str(len(keys)) + " new log files")
+
+goaccess_processes = {}
+
+# Open process for combined report
+if os.path.isdir(DB_ROOT + "/combined"):
+    combined_args = GOACCESS_ARGS + ["--restore"]
+else:
+    combined_args = GOACCESS_ARGS 
+    os.makedirs(DB_ROOT + "/combined")
+combined_pipe = subprocess.Popen(
+    combined_args + [
+        "--output", WEB_ROOT + "/combined.html",
+        "--db-path", DB_ROOT + "/combined" 
+    ],
+    stdin=subprocess.PIPE,
+    text=True
+)
+goaccess_processes["combined"] = combined_pipe
+
+#
+# Run goaccess against file, creating a separate db for each vhost + one for combined
+#
+def process_key (key):
+    parser = AwsLogParser(log_type=LogType.LoadBalancer)
+    response = s3_client.get_object(
+        Bucket=BUCKET,
+        Key=key
+    )
+    body = gzip.decompress( response["Body"].read() )
+    
+    for log_line in body.decode('utf-8').splitlines():
+        
+        # Every log line goes to combined report
+        goaccess_processes["combined"].stdin.write(log_line)
+
+        # Log line goes to site-specific report
+        entries = parser.parse([log_line])
+        entry = next(entries)
+        domain_name = entry.domain_name
+
+        # Some log entries like redirects don't have a domain name
+        if not domain_name:
+            continue
+        
+        if os.path.isdir(DB_ROOT + "/" + domain_name):
+            domain_args = GOACCESS_ARGS + ["--restore"]
+        else:
+            domain_args = GOACCESS_ARGS
+            os.makedirs(DB_ROOT + "/" + domain_name)
+
+        if not domain_name in goaccess_processes:
+            domain_pipe = subprocess.Popen(
+                domain_args + [
+                    "--output", WEB_ROOT + "/" + domain_name + ".html",
+                    "--db-path", DB_ROOT + "/" + domain_name
+                ],
+                stdin=subprocess.PIPE,
+                text=True
+            )
+            goaccess_processes[domain_name] = domain_pipe
+            
+        goaccess_processes[domain_name].stdin.write(log_line)
+            
+
+#
+# Process all keys
+#
+for key in keys:
+    print(">>> Processing key " + key)
+    process_key(key)
+    
+# Write last file
+with open(LAST_KEY_FILE, "w") as l:
+    l.truncate()
+    print(key, l)
+    l.close
+
+

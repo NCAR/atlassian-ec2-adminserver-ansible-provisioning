@@ -25,7 +25,10 @@
 
   roles:
     - role: linux_common
-    - role: goaccess_nginx
+    - role: goaccess
+    - role: nginx
+    - role: waf
+      
 #     - role: aws_common
 # #    - role: aws_shared_fs_config
 #     - role: product_common
