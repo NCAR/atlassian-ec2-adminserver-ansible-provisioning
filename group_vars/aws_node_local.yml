@@ -23,7 +23,7 @@ vpc_cidr: "{{ lookup('env', 'VPC_CIDR') }}"
 #
 # Vars from environment with defaults
 #
-efs_mountpoint: "{{ lookup('env', EFS_MOUNTPOINT) | default('/goaccess_data') }}"
+efs_mountpoint: "{{ lookup('env', EFS_MOUNTPOINT) | default('/goaccess_data', true) }}"
 goaccess_parse_alb_logs_cron_minutes: "{{ lookup('env', GOACCESS_PARSE_ALB_LOGS_CRON_MINUTES) | default('0,30', true) }}"
 nginx_allowed_cidr: "{{ lookup('env', 'NGINX_ALLOWED_CIDR') | default('128.117.0.0/16', true) }}"
 
