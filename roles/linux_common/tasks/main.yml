@@ -1,74 +1,50 @@
 ---
 
-- name: Install common Ubuntu support packages
-  ansible.builtin.apt:
+# Note: Try and limit these to packages that are distro-specific, and
+# place commonly-named ones below.
+- name: Install Amazon-Linux-specific prerequisites
+  ansible.builtin.include_tasks: "{{ ansible_distribution | lower }}-{{ ansible_distribution_version }}.yml"
+  when: ansible_distribution | lower == 'amazon'
+
+- name: Install Ubuntu/Debian-specific prerequisites
+  ansible.builtin.include_tasks: "{{ ansible_distribution | lower }}.yml"
+  when: ansible_distribution | lower != 'amazon'
+
+- name: Install common support packages
+  ansible.builtin.package:
     name:
       - amazon-ec2-utils
       - fontconfig
-      - git
       - jq
       - net-tools
+      - nvme-cli
       - tar
+      - yq
 
-      
-- name: Customizations for root .bashrc
-  ansible.builtin.blockinfile:
-     path: /root/.bashrc
-     append_newline: true
-     prepend_newline: true
-     marker: "### {mark} ANSIBLE MANAGED BLOCK ###"
-     block: |
-       # Source user data env vars into environment for subsequent ansible runs
-       tmpfile=$(mktemp); grep export /var/lib/cloud/instance/user-data.txt > $tmpfile; source $tmpfile; rm $tmpfile
-       
+- name: Create product group
+  ansible.builtin.group:
+    name: "{{ atl_product_user }}"
+    gid: "{{ atl_product_user_uid }}"
 
+- name: Create product user
+  ansible.builtin.user:
+    name: "{{ atl_product_user }}"
+    uid: "{{ atl_product_user_uid }}"
+    group: "{{ atl_product_user }}"
+    comment: "Product runtime user"
 
+- name: Stop systemd-cleanup deleting the jvm socket file
+  ansible.builtin.copy:
+    src: java.conf
+    dest: "/usr/lib/tmpfiles.d/java.conf"
+    owner: root
+    group: root
+    mode: "644"
+  register: systemd_config_changed
 
-# # Note: Try and limit these to packages that are distro-specific, and
-# # place commonly-named ones below.
-# - name: Install Amazon-Linux-specific prerequisites
-#   ansible.builtin.include_tasks: "{{ ansible_distribution | lower }}-{{ ansible_distribution_version }}.yml"
-#   when: ansible_distribution | lower == 'amazon'
-
-# - name: Install Ubuntu/Debian-specific prerequisites
-#   ansible.builtin.include_tasks: "{{ ansible_distribution | lower }}.yml"
-#   when: ansible_distribution | lower != 'amazon'
-
-# - name: Install common support packages
-#   ansible.builtin.package:
-#     name:
-#       - amazon-ec2-utils
-#       - fontconfig
-#       - jq
-#       - net-tools
-#       - nvme-cli
-#       - tar
-#       - yq
-
-# - name: Create product group
-#   ansible.builtin.group:
-#     name: "{{ atl_product_user }}"
-#     gid: "{{ atl_product_user_uid }}"
-
-# - name: Create product user
-#   ansible.builtin.user:
-#     name: "{{ atl_product_user }}"
-#     uid: "{{ atl_product_user_uid }}"
-#     group: "{{ atl_product_user }}"
-#     comment: "Product runtime user"
-
-# - name: Stop systemd-cleanup deleting the jvm socket file
-#   ansible.builtin.copy:
-#     src: java.conf
-#     dest: "/usr/lib/tmpfiles.d/java.conf"
-#     owner: root
-#     group: root
-#     mode: "644"
-#   register: systemd_config_changed
-
-# - name: Force systemd to reload daemon configuration
-#   ansible.builtin.systemd_service:
-#     daemon_reload: yes
-#   when:
-#     - systemd_config_changed is defined
-#     - molecule_yml is not defined  # molecule cannot run systemctl commands and notest doesn't work for handlers
+- name: Force systemd to reload daemon configuration
+  ansible.builtin.systemd_service:
+    daemon_reload: yes
+  when:
+    - systemd_config_changed is defined
+    - molecule_yml is not defined  # molecule cannot run systemctl commands and notest doesn't work for handlers
