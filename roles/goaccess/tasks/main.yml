@@ -1,10 +1,15 @@
 ---
+- name: Create efs mountpoint
+  ansible.builtin.file:
+    path: "{{ efs_mountpoint }}"
+    state: directory
+
 
 - name: NFS mount for goaccess data and web root
   ansible.posix.mount:
     src: "{{ efs_path }}"
     path: "{{ efs_mountpoint }}"
-    fstype: nfs
+    fstype: efs
     state: mounted
     opts: noresvport,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev
     
