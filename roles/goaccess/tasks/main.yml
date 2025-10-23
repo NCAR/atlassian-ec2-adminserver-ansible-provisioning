@@ -36,11 +36,11 @@
     update_cache: True
 
 - name: Install basic python environment
-    ansible.builtin.apt:
-      name:
-        - python3
-        - python3-pip
-        - python3-venv
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-pip
+      - python3-venv
 
 - name: Create python venv for goaccess log processing script
   ansible.builtin.pip:
