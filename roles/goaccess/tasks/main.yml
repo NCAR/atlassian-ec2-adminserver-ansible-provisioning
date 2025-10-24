@@ -1,4 +1,7 @@
 ---
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: apt
 
 - name: Install aws-efs-tools via shell
   ansible.builtin.shell: |
@@ -12,6 +15,7 @@
      apt-get -y install ./build/amazon-efs-utils*deb
      popd > /dev/null 2>&1
      rm -rf $tmpdir
+  when: "'amazon-efs-utils' not in ansible_facts.packages"
 
 - name: Create efs mountpoint
   ansible.builtin.file:
