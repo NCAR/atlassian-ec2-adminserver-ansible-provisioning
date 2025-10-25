@@ -48,7 +48,7 @@
 
     - name: Add goaccess repository
       ansible.builtin.apt_repository:
-        repo: "deb [signed-by=/etc/apt/keyrings/goaccess.gpg arch={{ ansible_facts['ansible_architecture'] }}] https://deb.goaccess.io/ {{ ansible_lsb.codename }} main"
+        repo: "deb [signed-by=/etc/apt/keyrings/goaccess.gpg arch={{ ansible_architecture }}] https://deb.goaccess.io/ {{ ansible_lsb.codename }} main"
         state: present
 
 - name: Install latest goaccess
