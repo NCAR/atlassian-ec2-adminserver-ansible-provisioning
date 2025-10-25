@@ -39,17 +39,15 @@
     - "{{ web_root }}"
 
     
-- name: Set up goaccess repo
-  block:
-    - name: Install goaccess repo key
-      ansible.builtin.get_url:
-        url: https://deb.goaccess.io/gnugpg.key
-        dest: /etc/apt/keyrings/goaccess.asc
+- name: Install goaccess repo key
+  ansible.builtin.get_url:
+    url: https://deb.goaccess.io/gnugpg.key
+    dest: /etc/apt/keyrings/goaccess.asc
 
-    - name: Add goaccess repository
-      ansible.builtin.apt_repository:
-        repo: "deb [signed-by=/etc/apt/keyrings/goaccess.gpg arch={{ ansible_architecture }}] https://deb.goaccess.io/ {{ ansible_lsb.codename }} main"
-        state: present
+- name: Add goaccess repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/goaccess.gpg arch={{ ansible_architecture }}] https://deb.goaccess.io/ {{ ansible_lsb.codename }} main"
+    state: present
 
 - name: Install latest goaccess
   ansible.builtin.apt:
