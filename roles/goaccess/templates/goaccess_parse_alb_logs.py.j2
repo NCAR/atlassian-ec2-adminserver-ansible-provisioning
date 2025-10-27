@@ -12,8 +12,31 @@ BUCKET = "{{ s3_bucket }}"
 PREFIX = "{{ alb_access_logs_prefix }}"
 DB_ROOT = "{{ goaccess_db_root }}"
 WEB_ROOT = "{{ web_root }}"
-
 LAST_KEY_FILE = "${DB_ROOT}/last_key"
+
+#
+# Only allow single instance of script to run
+#
+def check_pid():
+    PID_FILE = "/run/" + os.path.splitext(os.path.basename(__file__))[0]
+    if os.path.exists(PID_FILE):
+        with open(PID_FILE, "r+") as pidfile:
+            pid = pidfile.readline().strip()
+            try:
+                os.kill(pid, 0)
+            except OSError as e:
+                # Pid exists but process is not running
+                pidfile.truncate()
+                pidfile.write(os.getpid())
+            else:
+                # Pid exists and process is running
+                raise Exception("Process is already running")
+    else:
+        with open(PID_FILE, "w") as pidfile:
+            pidfile.write(os.getpid())
+
+
+check_pid()            
 
 GOACCESS_ARGS = [
     "/usr/bin/goaccess",
@@ -127,7 +150,7 @@ for key in keys:
 # Write last file
 with open(LAST_KEY_FILE, "w") as l:
     l.truncate()
-    print(key, l)
-    l.close
+    l.write(key + "\n")
+
 
 
