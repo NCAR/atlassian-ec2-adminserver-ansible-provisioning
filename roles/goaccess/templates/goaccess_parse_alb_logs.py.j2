@@ -13,12 +13,12 @@ PREFIX = "{{ alb_access_logs_prefix }}"
 DB_ROOT = "{{ goaccess_db_root }}"
 WEB_ROOT = "{{ web_root }}"
 LAST_KEY_FILE = "${DB_ROOT}/last_key"
+PID_FILE = "/run/" + os.path.splitext(os.path.basename(__file__))[0]
 
 #
 # Only allow single instance of script to run
 #
 def check_pid():
-    PID_FILE = "/run/" + os.path.splitext(os.path.basename(__file__))[0]
     if os.path.exists(PID_FILE):
         with open(PID_FILE, "r+") as pidfile:
             pid = pidfile.readline().strip()
@@ -153,4 +153,5 @@ with open(LAST_KEY_FILE, "w") as l:
     l.write(key + "\n")
 
 
+os.remove(PID_FILE)
 

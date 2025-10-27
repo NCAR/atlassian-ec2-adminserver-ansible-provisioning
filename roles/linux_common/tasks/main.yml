@@ -10,7 +10,6 @@
       - net-tools
       - tar
 
-      
 - name: Customizations for root .bashrc
   ansible.builtin.blockinfile:
      path: /root/.bashrc
