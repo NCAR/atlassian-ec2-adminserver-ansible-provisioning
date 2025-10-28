@@ -90,8 +90,12 @@ list_params = {
 
 if os.path.exists(LAST_KEY_FILE):
     with open(LAST_KEY_FILE, "r") as l:
-        list_params["StartAfter"] = l.readline().strip()
+        last_key = l.readline().strip()
+        logger.info("Last key processed on previous run: " + last_key)
+        list_params["StartAfter"] = last_key
     l.close()
+else:
+    logger.info("No last_key file; processing all keys from beginning")
 
 paginator = s3_client.get_paginator('list_objects_v2')
 response_iterator = paginator.paginate(**list_params)
