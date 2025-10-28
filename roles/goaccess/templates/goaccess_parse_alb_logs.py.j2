@@ -187,7 +187,7 @@ with open(LAST_KEY_FILE, "w") as l:
     l.seek(0)
     l.truncate(0)
     l.write(last_key + "\n")
-    logger.info("Last key was: " + last_key)
+    logger.info("Last key process on this run was: " + last_key)
 
 
 os.remove(PID_FILE)
