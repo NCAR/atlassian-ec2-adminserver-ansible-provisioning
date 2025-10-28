@@ -31,7 +31,8 @@ nginx_allowed_cidr: "{{ lookup('env', 'NGINX_ALLOWED_CIDR') | default('128.117.0
 # Derived globals
 # 
 goaccess_db_root: "{{ efs_mountpoint }}/goaccess_db"
-web_root: "{{ efs_mountpoint }}/goaccess_db"
+goaccess_last_key_file: "{{ efs_mountpoint }}/last_key"
+web_root: "{{ efs_mountpoint }}/www"
 
 # goaccess_db_root: "{{ lookup('env', 'GOACCESS_DB_ROOT') }}"   # FIXME should be on NFS vol
 # web_root: "{{ lookup('env', WEB_ROOT) | default('/var/www', true) }}" # FIXME should be on NFS vol
