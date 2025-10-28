@@ -103,7 +103,7 @@ def process_key (s3key):
     parser = AwsLogParser(log_type=LogType.LoadBalancer)
     response = s3_client.get_object(
         Bucket=BUCKET,
-        key=s3key
+        Key=s3key
     )
     body = gzip.decompress( response["Body"].read() )
     
