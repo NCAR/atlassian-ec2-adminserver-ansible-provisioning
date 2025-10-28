@@ -1,0 +1,7 @@
+/var/log/goaccess_parse_alb_logs.log {
+    rotate 7
+    copytruncate
+    daily
+    missingok
+    compress
+}
