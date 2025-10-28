@@ -12,7 +12,7 @@ BUCKET = "{{ s3_bucket }}"
 PREFIX = "{{ alb_access_logs_prefix }}"
 DB_ROOT = "{{ goaccess_db_root }}"
 WEB_ROOT = "{{ web_root }}"
-LAST_KEY_FILE = "${DB_ROOT}/last_key"
+LAST_KEY_FILE = DB_ROOT + "/last_key"
 PID_FILE = "/run/" + os.path.splitext(os.path.basename(__file__))[0]
 
 #
@@ -23,17 +23,18 @@ def check_pid():
         with open(PID_FILE, "r+") as pidfile:
             pid = pidfile.readline().strip()
             try:
-                os.kill(pid, 0)
+                os.kill(int(pid), 0) 
             except OSError as e:
                 # Pid exists but process is not running
-                pidfile.truncate()
-                pidfile.write(os.getpid())
+		pidfile.seek(0)
+                pidfile.truncate(0)
+                pidfile.write( str(os.getpid()) )
             else:
                 # Pid exists and process is running
                 raise Exception("Process is already running")
     else:
         with open(PID_FILE, "w") as pidfile:
-            pidfile.write(os.getpid())
+            pidfile.write( str(os.getpid()) )
 
 
 check_pid()            
