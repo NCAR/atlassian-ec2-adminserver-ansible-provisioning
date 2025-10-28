@@ -20,11 +20,11 @@ http {
         listen 80;
         server_name {{ nginx_domain_name }};
 
-        location / {
+        location /goaccess {
             allow {{ nginx_allowed_cidr }};
             deny all;
 
-            root {{ web_root }};
+            alias {{ web_root }};
             autoindex on;
         }
     }
