@@ -17,13 +17,14 @@ WEB_ROOT = "{{ web_root }}"
 LAST_KEY_FILE = DB_ROOT + "/last_key"
 CMD_BASENAME =  os.path.splitext(os.path.basename(__file__))[0]
 PID_FILE = "/run/" + CMD_BASENAME
+LOGFILE = "/var/log/" +  CMD_BASENAME + ".log"
 
 #
 # Usage and logging
 #
-LOGFILE = "/var/log/" +  CMD_BASENAME + ".log"
 parser = argparse.ArgumentParser(
-    description="Wrapper around goaccess to parse out per-server stats"
+    description="Wrapper around goaccess to parse out per-server stats",
+    epilog="By default logs to file: " + LOGFILE
 )
 parser.add_argument("-d", "--debug", action="store_true", default=False, help="Log to stderr at DEBUG level")
 args = parser.parse_args()
