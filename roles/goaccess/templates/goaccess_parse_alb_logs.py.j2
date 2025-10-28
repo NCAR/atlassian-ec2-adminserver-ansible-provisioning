@@ -40,9 +40,9 @@ else:
         "level": logging.INFO
     }
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', **log_args)
+logger = logger.getLogger(__name__)
 
-logging.info( __file__  + " >>>>>>>>>> starting <<<<<<<<<<" )
-
+logger.info( __file__  + " >>>>>>>>>> starting <<<<<<<<<<" )
 
 #
 # Only allow single instance of script to run
@@ -109,7 +109,7 @@ for response in response_iterator:
 sorted_objects = sorted(objects, key=lambda x: x['LastModified'])
 s3keys = [ x["Key"] for x in sorted_objects ]
 
-logging.info("Found " + str(len(s3keys)) + " new log files")
+logger.info("Found " + str(len(s3keys)) + " new log files")
 
 goaccess_processes = {}
 
@@ -178,7 +178,7 @@ def process_key (s3key):
 # Process all keys
 #
 for s3key in s3keys:
-    logging.debug("Processing key: " + s3key)
+    logger.debug("Processing key: " + s3key)
     process_key(s3key)
     
 # Write last file
@@ -187,9 +187,9 @@ with open(LAST_KEY_FILE, "w") as l:
     l.seek(0)
     l.truncate(0)
     l.write(last_key + "\n")
-    logging.info("Last key was: " + last_key)
+    logger.info("Last key was: " + last_key)
 
 
 os.remove(PID_FILE)
 
-logging.info( __file__  + " >>>>>>>>>> finished <<<<<<<<<<" )
+logger.info( __file__  + " >>>>>>>>>> finished <<<<<<<<<<" )
