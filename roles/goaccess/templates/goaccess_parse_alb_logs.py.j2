@@ -1,5 +1,7 @@
 #!{{ goaccess_process_logs_install_dir }}/bin/python3
 
+import argparse
+import logging
 import os
 import sys
 import boto3
@@ -13,7 +15,34 @@ PREFIX = "{{ alb_access_logs_prefix }}"
 DB_ROOT = "{{ goaccess_db_root }}"
 WEB_ROOT = "{{ web_root }}"
 LAST_KEY_FILE = DB_ROOT + "/last_key"
-PID_FILE = "/run/" + os.path.splitext(os.path.basename(__file__))[0]
+CMD_BASENAME =  os.path.splitext(os.path.basename(__file__))[0]
+PID_FILE = "/run/" + CMD_BASENAME
+
+#
+# Usage and logging
+#
+LOGFILE = "/var/log/" +  CMD_BASENAME + ".log"
+parser = argparse.ArgumentParser(
+    description="Wrapper around goaccess to parse out per-server stats"
+)
+parser.add_argument("-d", "--debug", action="store_true", default=False, help="Log to stderr at DEBUG level")
+args = parser.parse_args()
+if args.debug:
+    log_args = {
+        "level": logging.DEBUG,
+        "stream": sys.stderr
+    }
+else:
+    log_args = {
+        "level": logging.INFO,
+        "filename": LOGFILE,
+        "filemode": "a",
+        "level": logging.INFO
+    }
+logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', **log_args)
+
+logging.info( __file__  + " >>>>>>>>>> starting <<<<<<<<<<" )
+
 
 #
 # Only allow single instance of script to run
@@ -31,13 +60,14 @@ def check_pid():
                 pidfile.write( str(os.getpid()) )
             else:
                 # Pid exists and process is running
+                logger.error("Process is already running")
                 raise Exception("Process is already running")
     else:
         with open(PID_FILE, "w") as pidfile:
             pidfile.write( str(os.getpid()) )
-
-
+            
 check_pid()            
+
 
 GOACCESS_ARGS = [
     "/usr/bin/goaccess",
@@ -75,8 +105,7 @@ for response in response_iterator:
 sorted_objects = sorted(objects, key=lambda x: x['LastModified'])
 s3keys = [ x["Key"] for x in sorted_objects ]
 
-
-print(">>> Found " + str(len(s3keys)) + " new log files")
+logging.info("Found " + str(len(s3keys)) + " new log files")
 
 goaccess_processes = {}
 
@@ -145,15 +174,18 @@ def process_key (s3key):
 # Process all keys
 #
 for s3key in s3keys:
-    print(">>> Processing key " + s3key)
+    logging.debug("Processing key: " + s3key)
     process_key(s3key)
     
 # Write last file
 with open(LAST_KEY_FILE, "w") as l:
+    last_key = s3keys[-1]
     l.seek(0)
-    l.truncate()
-    l.write(s3keys[-1] + "\n")
+    l.truncate(0)
+    l.write(last_key + "\n")
+    logging.info("Last key was: " + last_key)
 
 
 os.remove(PID_FILE)
 
+logging.info( __file__  + " >>>>>>>>>> finished <<<<<<<<<<" )
