@@ -5,19 +5,28 @@
     name: nginx
     state: latest
 
-- name: Remove default nginx configuration
-  ansible.builtin.file:
-    path: /etc/nginx/sites-enabled/default
-    state: absent
+# - name: Remove default nginx configuration
+#   ansible.builtin.file:
+#     path: /etc/nginx/sites-enabled/default
+#     state: absent
 
-- name: Add nginx configuration
+# - name: Add nginx configuration
+#   ansible.builtin.template:  
+#     src: static-site-config.j2
+#     dest: /etc/nginx/sites-available/static-site-config
+#     owner: www-data
+#     group: www-data
+#     mode: '0644'
+
+- name: Nginx configuration
   ansible.builtin.template:  
-    src: static-site-config.j2
-    dest: /etc/nginx/sites-available/static-site-config
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
     owner: www-data
     group: www-data
     mode: '0644'
 
+    
 - name: Enable website configuration
   ansible.builtin.file:
     src: /etc/nginx/sites-available/static-site-config
