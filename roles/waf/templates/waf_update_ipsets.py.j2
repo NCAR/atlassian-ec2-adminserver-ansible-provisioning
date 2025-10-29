@@ -87,7 +87,7 @@ def existing_ipsets():
 
         next_marker = page["NextMarker"]
         for ipset in page["IPSets"]:
-            logger.info("Getting existing ipset " + ipset)
+            logger.info("Getting existing ipset " + ipset["Name"])
             result[ipset["Name"]] = ipset
  
     return result
