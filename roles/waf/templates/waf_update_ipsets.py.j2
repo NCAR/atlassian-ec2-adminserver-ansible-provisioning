@@ -79,7 +79,7 @@ def existing_ipsets():
         params = { "Scope": "REGIONAL" }
         if next_marker:
             params["NextMarker"] = next_marker
-        page = waf_client.list_ips_sets(**params)
+        page = waf_client.list_ip_sets(**params)
 
         # There's always a NextMarker, so test length of Ipsets array
         if len(page["IPSets"]) == 0:
