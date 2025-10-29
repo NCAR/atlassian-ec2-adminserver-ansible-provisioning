@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 import boto3
+import urllib
 
 CMD_BASENAME =  os.path.splitext(os.path.basename(__file__))[0]
 PID_FILE = "/run/" + CMD_BASENAME
