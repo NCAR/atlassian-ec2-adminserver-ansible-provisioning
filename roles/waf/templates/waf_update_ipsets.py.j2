@@ -72,7 +72,7 @@ waf_client = boto3.client("wafv2")
 #
 def existing_ipsets():
     result = {}
-    paginator = waf_client.get_paginator("list-ip-sets")
+    paginator = waf_client.get_paginator("list_ip_sets")
     page_iterator = paginator.paginate(Scope="REGIONAL")
     for page in page_iterator:
         for ipset in page["IPSets"]:
