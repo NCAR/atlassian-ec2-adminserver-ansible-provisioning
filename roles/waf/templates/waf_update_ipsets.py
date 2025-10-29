@@ -1,0 +1,123 @@
+#!{{ waf_update_ipsets_install_dir }}/bin/python3
+
+import argparse
+import logging
+import os
+import sys
+import boto3
+
+CMD_BASENAME =  os.path.splitext(os.path.basename(__file__))[0]
+PID_FILE = "/run/" + CMD_BASENAME
+LOGFILE = "/var/log/" +  CMD_BASENAME + ".log"
+
+#
+# Usage and logging
+#
+parser = argparse.ArgumentParser(
+    description=""
+    epilog="By default logs to file: " + LOGFILE
+)
+parser.add_argument("-d", "--debug", action="store_true", default=False, help="Log to stderr at DEBUG level")
+args = parser.parse_args()
+if args.debug:
+    log_args = {
+        "level": logging.DEBUG,
+        "stream": sys.stderr
+    }
+else:
+    log_args = {
+        "level": logging.INFO,
+        "filename": LOGFILE,
+        "filemode": "a",
+        "level": logging.INFO
+    }
+logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', **log_args)
+logger = logging.getLogger(__name__)
+
+logger.info( __file__  + " >>>>>>>>>> starting <<<<<<<<<<" )
+
+#
+# Only allow single instance of script to run
+#
+def check_pid():
+    if os.path.exists(PID_FILE):
+        with open(PID_FILE, "r+") as pidfile:
+            pid = pidfile.readline().strip()
+            try:
+                os.kill(int(pid), 0) 
+            except OSError as e:
+                # Pid exists but process is not running
+                pidfile.seek(0)
+                pidfile.truncate(0)
+                pidfile.write( str(os.getpid()) )
+            else:
+                # Pid exists and process is running
+                logger.error("Process is already running")
+                raise Exception("Process is already running")
+    else:
+        with open(PID_FILE, "w") as pidfile:
+            pidfile.write( str(os.getpid()) )
+            
+check_pid()            
+
+
+SSM_PREFIX = "/infrastructure/"
+
+ssm_client = boto3.client('ssm')
+waf_client = waf = boto3.client("wafv2")
+
+#
+# Get dict of ipset names to definitions
+#
+def existing_ipsets():
+    result = {}
+    paginator = waf_client.get_paginator("list-ip-sets")
+    page_iterator = paginator.paginate(Scope="REGIONAL")
+    for page in page_iterator:
+        for ipset in page["IPSets"]:
+            logger.info("Getting existing ipset " + ipset)
+            result[ipset["Name"]] = ipset
+    return result
+            
+existing_ipsets = existing_ipsets()
+
+#
+# Iterate over the ipsets in the SSM params
+#
+ssm_response = ssm_client.get_parameter(Name=SSM_PREFIX + "waf_ipsets")
+ipset_names = [x.strip() for x in ssm_response['Parameter']['Value'].split(',')] 
+for ipset_name in ipset_names:
+    ssm_response = ssm_client.get_parameter(Name=SSM_PREFIX + ipset_name)
+    ipset_src_list = [x.strip() for x in ssm_response['Parameter']['Value'].split(',')]
+
+    # Merge cidrs for all of this ipset's sources into an array
+    ipset_cidrs = []
+    for ipset_src in ipset_src_list:
+        logger.info("Processing ipset source " + ipset_src + " for ipset " + ipset_name) 
+        ipset_cidrs = []
+        with urllib.request.urlopen(ipset_src) as ssm_response:
+            for ipset_line in ssm_response.readlines():
+                cidr = ipset_line.decode('utf-8').strip()
+                if cidr.startswith("#") or cidr.isspace():
+                    continue
+                if not '/' in cidr:
+                    cidr = cidr + "/32"
+                ipset_cidrs.append(cidr)
+    logger.info("Found " + str(len(ipset_cidrs)) + " cidrs in update for ipset " + ipset_name)
+
+    # Update ipset with new cidr list
+    current_ipset = waf_client.get_ip_set(
+        Name=ipset_name,
+        Id=existing_ipsets[ipset_name]["Id"],
+        Scope="REGIONAL"
+    )
+    existing_ipset["Addresses"] = ipset_cidrs
+    logger.info("Updating ipset " + ipset)
+    waf_client.update_ip_set(**current_ipset)
+    
+
+os.remove(PID_FILE)
+logger.info( __file__  + " >>>>>>>>>> finished <<<<<<<<<<" )
+
+
+        

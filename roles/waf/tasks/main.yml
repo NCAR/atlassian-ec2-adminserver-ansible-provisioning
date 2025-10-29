@@ -1,3 +1,40 @@
 ---
 
-# Script updates of WAF ipsets
+- name: Install basic python environment
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-pip
+      - python3-virtualenv
+
+- name: Create python venv for waf_update_ipsets script
+  ansible.builtin.pip:
+    virtualenv: "{{ waf_update_ipsets_install_dir }}"
+    name:
+      - botocore
+      - boto3
+
+- name: Install waf_update_ipsets processing script
+  ansible.builtin.template:  
+    src: waf_update_ipsets.py.j2
+    dest: "{{ waf_update_ipsets_install_dir }}/waf_update_ipsets.py"
+    owner: "root"
+    group: "root"
+    mode: '0755'
+
+- name: Link waf_update_ipsets script to /usr/local/bin
+  ansible.builtin.file:
+    src: "{{ waf_update_ipsets_install_dir }}/waf_update_ipsets.py"
+    dest: "/usr/local/bin/waf_update_ipsets.py"
+    state: link
+
+- name: Cron for waf_update_ipsets.py
+  ansible.builtin.cron:
+    name: "waf_update_ipsets"
+    special_time: "daily"
+    job: /usr/local/bin/waf_update_ipsets.py
+
+- name: Logrotate config for waf_update_ipsets.py
+  ansible.builtin.copy:
+    src: logrotate_waf_update_ipsets
+    dest: /etc/logrotate.d/waf_update_ipsets
