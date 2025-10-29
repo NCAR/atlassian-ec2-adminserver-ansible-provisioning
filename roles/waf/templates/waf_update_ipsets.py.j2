@@ -125,10 +125,16 @@ for ipset_name in ipset_names:
         Id=existing_ipsets[ipset_name]["Id"],
         Scope="REGIONAL"
     )
-    #existing_ipsets["Addresses"] = ipset_cidrs
-    current_ipset["Addresses"] = ipset_cidrs
+
     logger.info("Updating ipset " + ipset_name)
-    waf_client.update_ip_set(**current_ipset)
+    waf_client.update_ip_set(
+        Name=current_ipset["Name"],
+        Scope="REGIONAL",
+        Id=current_ipset["Id"],
+        Description=current_ipset["Description"],
+        Addresses=ipset_cidrs,
+        LockToken=current_ipset["LockToken"]
+    )
     
 
 os.remove(PID_FILE)
