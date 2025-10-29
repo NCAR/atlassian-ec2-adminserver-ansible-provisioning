@@ -63,6 +63,7 @@ check_pid()
 
 SSM_PREFIX = "/infrastructure/"
 
+boto3.setup_default_session(region_name="{{ aws_region }}")
 ssm_client = boto3.client('ssm')
 waf_client = boto3.client("wafv2")
 

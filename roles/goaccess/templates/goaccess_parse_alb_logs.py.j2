@@ -82,6 +82,7 @@ GOACCESS_ARGS = [
 os.makedirs(DB_ROOT, exist_ok=True)
 os.makedirs(WEB_ROOT, exist_ok=True)
 
+boto3.setup_default_session(region_name="{{ aws_region }}")
 s3_client = boto3.client('s3')
 
 list_params = {
