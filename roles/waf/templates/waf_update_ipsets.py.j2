@@ -125,7 +125,7 @@ for ipset_name in ipset_names:
         Id=existing_ipsets[ipset_name]["Id"],
         Scope="REGIONAL"
     )
-    existing_ipset["Addresses"] = ipset_cidrs
+    existing_ipsets["Addresses"] = ipset_cidrs
     logger.info("Updating ipset " + ipset)
     waf_client.update_ip_set(**current_ipset)
     
