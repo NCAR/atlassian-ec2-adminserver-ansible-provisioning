@@ -64,7 +64,7 @@ check_pid()
 SSM_PREFIX = "/infrastructure/"
 
 ssm_client = boto3.client('ssm')
-waf_client = waf = boto3.client("wafv2")
+waf_client = boto3.client("wafv2")
 
 #
 # Get dict of ipset names to definitions
