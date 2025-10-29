@@ -69,15 +69,27 @@ waf_client = boto3.client("wafv2")
 
 #
 # Get dict of ipset names to definitions
+# Boto3 WAF apparently doesn't support paginators.
 #
 def existing_ipsets():
     result = {}
-    paginator = waf_client.get_paginator("list_ip_sets")
-    page_iterator = paginator.paginate(Scope="REGIONAL")
-    for page in page_iterator:
+
+    next_marker = None
+    while True:
+        params = { "Scope": "REGIONAL" }
+        if next_marker:
+            params["NextMarker"] = next_marker
+        page = waf_client.list_ips_sets(**params)
+
+        # There's always a NextMarker, so test length of Ipsets array
+        if len(page["IPSets"]) == 0:
+            break
+
+        next_marker = page["NextMarker"]
         for ipset in page["IPSets"]:
             logger.info("Getting existing ipset " + ipset)
             result[ipset["Name"]] = ipset
+ 
     return result
             
 existing_ipsets = existing_ipsets()
