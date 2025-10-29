@@ -1,0 +1,7 @@
+/var/log/waf_update_ipsets.log {
+    rotate 7
+    copytruncate
+    daily
+    missingok
+    compress
+}
