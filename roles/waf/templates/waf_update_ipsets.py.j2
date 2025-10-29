@@ -128,7 +128,7 @@ for ipset_name in ipset_names:
 
     logger.info("Updating ipset " + ipset_name)
     waf_client.update_ip_set(
-        Name=current_ipset["Name"],
+        Name=ipset_name,
         Scope="REGIONAL",
         Id=current_ipset["Id"],
         Description=current_ipset["Description"],
