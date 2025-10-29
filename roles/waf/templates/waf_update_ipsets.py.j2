@@ -14,7 +14,7 @@ LOGFILE = "/var/log/" +  CMD_BASENAME + ".log"
 # Usage and logging
 #
 parser = argparse.ArgumentParser(
-    description=""
+    description="Update WAF Ipsets; configuration managed in SSM",
     epilog="By default logs to file: " + LOGFILE
 )
 parser.add_argument("-d", "--debug", action="store_true", default=False, help="Log to stderr at DEBUG level")
