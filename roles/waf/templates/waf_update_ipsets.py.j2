@@ -7,9 +7,9 @@ import sys
 import boto3
 import urllib
 import socket
-from datetime import datetime
+import datetime
 
-CMD_BASENAME =  os.path.splitext(os.path.basename(__file__))[0]
+CMD_BASENAME = os.path.splitext(os.path.basename(__file__))[0]
 PID_FILE = "/run/" + CMD_BASENAME
 LOGFILE = "/var/log/" +  CMD_BASENAME + ".log"
 
@@ -135,7 +135,7 @@ for ipset_name in ipset_names:
         Scope="REGIONAL"
     )
 
-    description = ipset_name + "Updated by " + __file__ + " on " + socket.gethostname() + " at " + datetime.now()
+    description = "IPSet " + ipset_name + " updated by " + __file__ + " on " + socket.getfqdn() + " at " + str(datetime.datetime.now())
     logger.info("Updating ipset " + ipset_name)
     waf_client.update_ip_set(
         Name=ipset_name,
