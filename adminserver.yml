@@ -1,5 +1,5 @@
 ---
-- name: goaccess_ec2.yml
+- name: adminserver.yml
   hosts: aws_node_local
   become: true
   module_defaults:
