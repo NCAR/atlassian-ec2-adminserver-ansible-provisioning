@@ -70,7 +70,7 @@ waf_client = boto3.client("wafv2")
 
 #
 # Get dict of ipset names to definitions
-# Boto3 WAF apparently doesn't support paginators.
+# Boto3 WAF apparently doesn't support paginators :(
 #
 def existing_ipsets():
     result = {}
@@ -108,15 +108,22 @@ for ipset_name in ipset_names:
     ipset_cidrs = []
     for ipset_src in ipset_src_list:
         logger.info("Processing ipset source " + ipset_src + " for ipset " + ipset_name) 
-        ipset_cidrs = []
-        with urllib.request.urlopen(ipset_src) as ssm_response:
-            for ipset_line in ssm_response.readlines():
-                cidr = ipset_line.decode('utf-8').strip()
-                if cidr.startswith("#") or cidr.isspace():
-                    continue
-                if not '/' in cidr:
-                    cidr = cidr + "/32"
-                ipset_cidrs.append(cidr)
+
+        # ipset_src is a plain CIDR
+        if ipset_src[:1].isdigit():
+            ipset_cidrs.append(ipset_src)
+            
+        # ipset_src is a URL from which to download a list of CIDRs
+        else:
+            with urllib.request.urlopen(ipset_src) as ssm_response:
+                for ipset_line in ssm_response.readlines():
+                    cidr = ipset_line.decode('utf-8').strip()
+                    if cidr.startswith("#") or cidr.isspace():
+                        continue
+                    if not '/' in cidr:
+                        cidr = cidr + "/32"
+                    ipset_cidrs.append(cidr)
+
     logger.info("Found " + str(len(ipset_cidrs)) + " cidrs in update for ipset " + ipset_name)
 
     # Update ipset with new cidr list
@@ -139,6 +146,3 @@ for ipset_name in ipset_names:
 
 os.remove(PID_FILE)
 logger.info( __file__  + " >>>>>>>>>> finished <<<<<<<<<<" )
-
-
-        
