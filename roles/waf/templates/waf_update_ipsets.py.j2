@@ -70,6 +70,11 @@ boto3.setup_default_session(region_name="{{ aws_region }}")
 ssm_client = boto3.client('ssm')
 waf_client = boto3.client("wafv2")
 
+ssm_response = ssm_client.get_parameter(Name=SSM_PREFIX + "ipset_scope")
+ipset_scope = ssm_response['Parameter']['Value']
+ssm_response = ssm_client.get_parameter(Name=SSM_PREFIX + "ipset_region")
+
+
 #
 # Get dict of ipset names to definitions
 # Boto3 WAF apparently doesn't support paginators :(
@@ -79,7 +84,7 @@ def existing_ipsets():
 
     next_marker = None
     while True:
-        params = { "Scope": "REGIONAL" }
+        params = { "Scope": ipset_scope }
         if next_marker:
             params["NextMarker"] = next_marker
         page = waf_client.list_ip_sets(**params)
@@ -132,18 +137,20 @@ for ipset_name in ipset_names:
     current_ipset = waf_client.get_ip_set(
         Name=ipset_name,
         Id=existing_ipsets[ipset_name]["Id"],
-        Scope="REGIONAL"
+        Scope=ipset_scope,
+	Region=ipset_region
     )
 
     description = "IPSet " + ipset_name + " updated by " + __file__ + " on " + socket.getfqdn() + " at " + str(datetime.datetime.now())
     logger.info("Updating ipset " + ipset_name)
     waf_client.update_ip_set(
         Name=ipset_name,
-        Scope="REGIONAL",
+        Scope=ipset_scope,
         Id=current_ipset["IPSet"]["Id"],
         Description=description,
         Addresses=ipset_cidrs,
-        LockToken=current_ipset["LockToken"]
+        LockToken=current_ipset["LockToken"],
+	Region=ipset_region
     )
 
 os.remove(PID_FILE)
