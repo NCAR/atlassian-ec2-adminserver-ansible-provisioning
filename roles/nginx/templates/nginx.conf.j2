@@ -21,6 +21,7 @@ http {
         server_name {{ nginx_domain_name }};
 
         location /goaccess {
+	    allow 127.0.0.1; # Useful for debugging
             allow {{ nginx_allowed_cidr }};
             deny all;
 
