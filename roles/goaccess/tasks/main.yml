@@ -1,34 +1,17 @@
 ---
-- name: Gather the package facts
-  ansible.builtin.package_facts:
-    manager: apt
 
-- name: Install aws-efs-tools via shell
-  ansible.builtin.shell: |
-    apt-get -y install git binutils rustc cargo pkg-config libssl-dev
-    pushd . >/dev/null 2>&1
-    tmpdir=$(mktemp -d)
-    cd $tmpdir
-    git clone https://github.com/aws/efs-utils
-    cd efs-utils
-    ./build-deb.sh
-     apt-get -y install ./build/amazon-efs-utils*deb
-     popd > /dev/null 2>&1
-     rm -rf $tmpdir
-  when: "'amazon-efs-utils' not in ansible_facts.packages"
+# - name: Create efs mountpoint
+#   ansible.builtin.file:
+#     path: "{{ efs_mountpoint }}"
+#     state: directory
 
-- name: Create efs mountpoint
-  ansible.builtin.file:
-    path: "{{ efs_mountpoint }}"
-    state: directory
-
-- name: NFS mount for goaccess data and web root
-  ansible.posix.mount:
-    src: "{{ efs_path }}"
-    path: "{{ efs_mountpoint }}"
-    fstype: efs
-    state: mounted
-    opts: noresvport,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev
+# - name: NFS mount for goaccess data and web root
+#   ansible.posix.mount:
+#     src: "{{ efs_path }}"
+#     path: "{{ efs_mountpoint }}"
+#     fstype: efs
+#     state: mounted
+#     opts: noresvport,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev
     
 - name: Create directories needed by log processing script
   ansible.builtin.file:

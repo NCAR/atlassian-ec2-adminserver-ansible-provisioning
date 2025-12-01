@@ -1,5 +1,7 @@
 ---
-efs_target: "{{ atl_efs_id }}"
-efs_type: "{{ lookup('env', 'ATL_EFS_TYPE') or 'efs' }}"
-efs_src_dir: "{{ lookup('env', 'ATL_EFS_SRC_DIR') or '/' }}"
-efs_mount_options: "{{ lookup('env', 'ATL_EFS_MOUNT_OPTIONS') or 'defaults,_netdev' }}"
+efs_type: efs
+efs_mount_options: noresvport,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev
+
+# efs_target: "{{ atl_efs_id }}"
+# efs_src_dir: "{{ lookup('env', 'ATL_EFS_SRC_DIR') or '/' }}"
+# efs_mount_options: "{{ lookup('env', 'ATL_EFS_MOUNT_OPTIONS') or 'defaults,_netdev' }}"

@@ -1,15 +1,38 @@
 ---
 
+#
+# Build and install aws-efs-tools
+#
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: apt
+
+- name: Install aws-efs-tools via shell
+  ansible.builtin.shell: |
+    apt-get -y install git binutils rustc cargo pkg-config libssl-dev
+    pushd . >/dev/null 2>&1
+    tmpdir=$(mktemp -d)
+    cd $tmpdir
+    git clone https://github.com/aws/efs-utils
+    cd efs-utils
+    ./build-deb.sh
+     apt-get -y install ./build/amazon-efs-utils*deb
+     popd > /dev/null 2>&1
+     rm -rf $tmpdir
+  when: "'amazon-efs-utils' not in ansible_facts.packages"
+
+
+
 - name: Create mountpoint
   ansible.builtin.file:
     state: directory
-    path: "{{ atl_shared_mountpoint }}"
+    path: "{{ efs_mountpoint }}"
     mode: 0755
 
 - name: Enable mountpoint in fstab
   ansible.posix.mount:
-    path: "{{ atl_shared_mountpoint }}"
-    src: "{{ efs_target }}:{{ efs_src_dir }}"
+    path: "{{ efs_mountpoint }}"
+    src: "{{ efs_path }}"
     fstype: "{{ efs_type }}"
     opts: "{{ efs_mount_options }}"
     state: mounted
