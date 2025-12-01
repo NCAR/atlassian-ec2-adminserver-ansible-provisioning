@@ -22,14 +22,17 @@
 #   when: "'amazon-efs-utils' not in ansible_facts.packages"
 
 # Gather EC2 metadata facts
-#- amazon.aws.ec2_metadata_facts:
-
+- name: Fetch local EC2 metadata
+  amazon.aws.ec2_metadata_facts:
+    metadata_token_ttl_seconds: 120
+  tags:
+    - notest
 
 - name: Install aws-efs-tools via aws cli ssm
   ansible.builtin.shell: |
     aws ssm send-command \
     --document-name "AmazonEFSUtils" \
-    --instance-ids "{{ hostvars['ansible_ec2_instance_id'] }}" \
+    --instance-ids "{{ ansible_ec2_instance_id }}" \
     --parameters '{"action":["Install"],"installationType":["Uninstall and reinstall"],"name":["AmazonEFSUtils"]}'
 
   
