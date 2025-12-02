@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Install or update a package via ssm
+
+INSTANCE_ID="{{ ansible_ec2_instance_id }}"
+REGION="{{ aws_region }}"
+
+package=$1
+if ! test -n "$package"; then
+    cat <<USAGE
+Usage: $0 package
+
+Install or update an SSM package.
+USAGE
+    exit 1
+fi
+
+while [ 1 ]; do
+    command_id=$(
+	aws ssm send-command \
+	    --region $REGION \
+	    --instance-ids $INSTANCE_ID \
+	    --document-name AWS-ConfigureAWSPackage \
+	    --parameters '{"action":["Install"],"installationType":["Uninstall and reinstall"],"name":["AmazonEFSUtils"]}' | jq -r '.Command.CommandId' 2>/dev/null
+	      )
+    if test -n "$command_id"; then
+	break
+    fi
+
+    echo "aws ssm send-command failed; retrying in 5 seconds"
+    sleep 5
+done
+
+while [ 1 ]; do
+    command_status=$(
+	aws ssm get-command-invocation \
+	    --region $REGION \	    
+	    --command-id $command_id \
+	    --instance-id $INSTANCE_ID | jq -r '.Status' 2>/dev/null
+		  )
+    if [ "$command_status" == "Success" ]; then
+	break
+    fi
+
+    echo "aws ssm commmand status is \"$command_status\"; checking again in 5 seconds"
+    sleep 5
+done

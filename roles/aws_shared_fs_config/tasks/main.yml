@@ -1,26 +1,5 @@
 ---
 
-# #
-# # Build and install aws-efs-tools
-# #
-# - name: Gather the package facts
-#   ansible.builtin.package_facts:
-#     manager: apt
-    
-# - name: Install aws-efs-tools via shell
-#   ansible.builtin.shell: |
-#     apt-get -y install git binutils rustc cargo pkg-config libssl-dev golang cmake
-#     pushd . >/dev/null 2>&1
-#     tmpdir=$(mktemp -d)
-#     cd $tmpdir
-#     git clone https://github.com/aws/efs-utils
-#     cd efs-utils
-#     ./build-deb.sh
-#      apt-get -y install ./build/amazon-efs-utils*deb
-#      popd > /dev/null 2>&1
-#      rm -rf $tmpdir
-#   when: "'amazon-efs-utils' not in ansible_facts.packages"
-
 # Gather EC2 metadata facts
 - name: Fetch local EC2 metadata
   amazon.aws.ec2_metadata_facts:
@@ -28,15 +7,18 @@
   tags:
     - notest
 
-- name: Install aws-efs-tools via aws cli ssm
-  ansible.builtin.shell: |
-    aws ssm send-command \
-    --document-name "AmazonEFSUtils" \
-    --instance-ids "{{ ansible_ec2_instance_id }}" \
-    --parameters '{"action":["Install"],"installationType":["Uninstall and reinstall"],"name":["AmazonEFSUtils"]}'
+- name: Install script to install/upgrade ssm package
+  ansible.builtin.template:
+    src: install_aws_ssm_package.sh.j2
+    dest: /usr/local/bin/install_aws_ssm_package.sh
+    owner: "root"
+    group: "root"
+    mode: '0755'
 
+- name: Install amazon-efs-utils package
+  ansible.builtin.shell:  /usr/local/bin/install_aws_ssm_package.sh amazon-efs-utils
+  when: "'amazon-efs-utils' not in ansible_facts.packages"
   
-
 - name: Create mountpoint
   ansible.builtin.file:
     state: directory
