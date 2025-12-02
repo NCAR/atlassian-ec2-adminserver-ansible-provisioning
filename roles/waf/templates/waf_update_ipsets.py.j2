@@ -67,8 +67,7 @@ check_pid()
 SSM_PREFIX = "/infrastructure/"
 
 boto3.setup_default_session(region_name="{{ aws_region }}")
-ssm_client = boto3.client('ssm')
-waf_client = boto3.client("wafv2")
+ssm_client = boto3.client("ssm")
 
 ssm_response = ssm_client.get_parameter(Name=SSM_PREFIX + "ipset_scope")
 ipset_scope = ssm_response['Parameter']['Value']
@@ -77,6 +76,9 @@ if ipset_scope == "CLOUDFRONT":
     ipset_region = "us-east-1"
 else:
     ipset_region = "{{ aws_region }}"
+
+waf_client = boto3.client("wafv2", region_name=ipset_region)
+
 
 #
 # Get dict of ipset names to definitions
