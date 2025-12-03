@@ -13,19 +13,6 @@ CMD_BASENAME = os.path.splitext(os.path.basename(__file__))[0]
 PID_FILE = "/run/" + CMD_BASENAME
 LOGFILE = "/var/log/" +  CMD_BASENAME + ".log"
 SSM_PREFIX = "/infrastructure/" # FIXME should be variable
-
-#
-# Get globals
-#
-boto3.setup_default_session(region_name="{{ aws_region }}")
-ssm_client = boto3.client("ssm")
-ssm_params = ssm_params()
-existing_ipsets = existing_ipsets()
-if ssm_params["ipset_scope"] == "CLOUDFRONT":
-    ipset_region = "us-east-1"
-else:
-    ipset_region = "{{ aws_region }}"
-waf_client = boto3.client("wafv2", region_name=ipset_region)
     
 #
 # Only allow single instance of script to run
@@ -138,10 +125,23 @@ logger = logging.getLogger(__name__)
 
 logger.info( __file__  + " >>>>>>>>>> starting <<<<<<<<<<" )
 
+#
+# Initialize boto3 clients and get SSM params
+#
+boto3.setup_default_session(region_name="{{ aws_region }}")
+ssm_client = boto3.client("ssm")
+ssm_params = ssm_params()
+if ssm_params["ipset_scope"] == "CLOUDFRONT":
+    ipset_region = "us-east-1"
+else:
+    ipset_region = "{{ aws_region }}"
+waf_client = boto3.client("wafv2", region_name=ipset_region)
+
 
 #
 # Iterate over the ipsets listed in the SSM param "waf_ipsets"
 #
+existing_ipsets = existing_ipsets()
 ipset_names = [x.strip() for x in ssm_params["waf_ipsets"]]
 for ipset_name in ipset_names:
                
