@@ -14,22 +14,19 @@ PID_FILE = "/run/" + CMD_BASENAME
 LOGFILE = "/var/log/" +  CMD_BASENAME + ".log"
 SSM_PREFIX = "/infrastructure/" # FIXME should be variable
 
-
-check_pid()
-
 #
 # Get globals
 #
 boto3.setup_default_session(region_name="{{ aws_region }}")
 ssm_client = boto3.client("ssm")
-waf_client = boto3.client("wafv2", region_name=ipset_region)
 ssm_params = ssm_params()
 existing_ipsets = existing_ipsets()
 if ssm_params["ipset_scope"] == "CLOUDFRONT":
     ipset_region = "us-east-1"
 else:
     ipset_region = "{{ aws_region }}"
-
+waf_client = boto3.client("wafv2", region_name=ipset_region)
+    
 #
 # Only allow single instance of script to run
 #
@@ -117,6 +114,7 @@ def get_cidr_list_from_url(url):
 #
 # Usage and logging
 #
+check_pid()
 parser = argparse.ArgumentParser(
     description="Update WAF Ipsets; configuration managed in SSM",
     epilog="By default logs to file: " + LOGFILE
@@ -144,7 +142,7 @@ logger.info( __file__  + " >>>>>>>>>> starting <<<<<<<<<<" )
 #
 # Iterate over the ipsets listed in the SSM param "waf_ipsets"
 #
-ipset_names = [x.strip() for x in ssm_params["waf_ipsets"]
+ipset_names = [x.strip() for x in ssm_params["waf_ipsets"]]
 for ipset_name in ipset_names:
                
     if "cidrs" in ssm_params[ipset_name]:
