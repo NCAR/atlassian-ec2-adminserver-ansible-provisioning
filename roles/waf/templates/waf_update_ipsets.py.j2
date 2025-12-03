@@ -12,6 +12,107 @@ import datetime
 CMD_BASENAME = os.path.splitext(os.path.basename(__file__))[0]
 PID_FILE = "/run/" + CMD_BASENAME
 LOGFILE = "/var/log/" +  CMD_BASENAME + ".log"
+SSM_PREFIX = "/infrastructure/" # FIXME should be variable
+
+
+check_pid()
+
+#
+# Get globals
+#
+boto3.setup_default_session(region_name="{{ aws_region }}")
+ssm_client = boto3.client("ssm")
+waf_client = boto3.client("wafv2", region_name=ipset_region)
+ssm_params = ssm_params()
+existing_ipsets = existing_ipsets()
+if ssm_params["ipset_scope"] == "CLOUDFRONT":
+    ipset_region = "us-east-1"
+else:
+    ipset_region = "{{ aws_region }}"
+
+#
+# Only allow single instance of script to run
+#
+def check_pid():
+    if os.path.exists(PID_FILE):
+        with open(PID_FILE, "r+") as pidfile:
+            pid = pidfile.readline().strip()
+            try:
+                os.kill(int(pid), 0) 
+            except OSError as e:
+                # Pid exists but process is not running
+                pidfile.seek(0)
+                pidfile.truncate(0)
+                pidfile.write( str(os.getpid()) )
+            else:
+                # Pid exists and process is running
+                logger.error("Process is already running")
+                raise Exception("Process is already running")
+    else:
+        with open(PID_FILE, "w") as pidfile:
+            pidfile.write( str(os.getpid()) )
+            
+
+#
+# Get all SSM parameter values mapped to a single dict by path, without SSM_PREFIX
+# WARNING: we don't bother with pagination
+#
+# REF: https://stackoverflow.com/questions/67440569/python-convert-path-to-dict
+#
+def ssm_params():
+    result = {}
+    ssm_response = ssm_client.get_parameters_by_path(
+        Path=SSM_PREFIX,
+        Recursive=True)
+    for p in ssm_response["Parameters"]:
+        path_elements = p["Name"].lstrip("/").split("/")
+        del path_elements[0]
+        final_key = path_elements.pop(-1)
+        target_dict = result
+        for element in path_elements:
+            target_dict = target_dict.setdefault(element, {})
+        target_dict[final_key] = p["Value"]
+    return result
+            
+#
+# Get dict of ipset names to definitions
+# Boto3 WAF apparently doesn't support paginators :(
+#
+def existing_ipsets():
+    result = {}
+
+    next_marker = None
+    while True:
+        params = { "Scope": ssm_params["ipset_scope"] }
+        if next_marker:
+            params["NextMarker"] = next_marker
+        page = waf_client.list_ip_sets(**params)
+
+        # There's always a NextMarker, so test length of Ipsets array
+        if len(page["IPSets"]) == 0:
+            break
+
+        next_marker = page["NextMarker"]
+        for ipset in page["IPSets"]:
+            logger.info("Getting existing ipset " + ipset["Name"])
+            result[ipset["Name"]] = ipset
+ 
+    return result
+
+#
+# Given a URL to a cidr list page, return a list of CIDRs
+#
+def get_cidr_list_from_url(url):
+    cidrs = []
+    with urllib.request.urlopen(url) as ssm_response:
+        for ipset_line in ssm_response.readlines():
+            cidr = ipset_line.decode('utf-8').strip()
+            if cidr.startswith("#") or cidr.isspace():
+                continue
+            if not '/' in cidr:
+                cidr = cidr + "/32"
+            cidrs.append(cidr)
+    return cidrs
 
 #
 # Usage and logging
@@ -39,102 +140,20 @@ logger = logging.getLogger(__name__)
 
 logger.info( __file__  + " >>>>>>>>>> starting <<<<<<<<<<" )
 
-#
-# Only allow single instance of script to run
-#
-def check_pid():
-    if os.path.exists(PID_FILE):
-        with open(PID_FILE, "r+") as pidfile:
-            pid = pidfile.readline().strip()
-            try:
-                os.kill(int(pid), 0) 
-            except OSError as e:
-                # Pid exists but process is not running
-                pidfile.seek(0)
-                pidfile.truncate(0)
-                pidfile.write( str(os.getpid()) )
-            else:
-                # Pid exists and process is running
-                logger.error("Process is already running")
-                raise Exception("Process is already running")
-    else:
-        with open(PID_FILE, "w") as pidfile:
-            pidfile.write( str(os.getpid()) )
-            
-check_pid()            
-
-
-SSM_PREFIX = "/infrastructure/"
-
-boto3.setup_default_session(region_name="{{ aws_region }}")
-ssm_client = boto3.client("ssm")
-
-ssm_response = ssm_client.get_parameter(Name=SSM_PREFIX + "ipset_scope")
-ipset_scope = ssm_response['Parameter']['Value']
-
-if ipset_scope == "CLOUDFRONT":
-    ipset_region = "us-east-1"
-else:
-    ipset_region = "{{ aws_region }}"
-
-waf_client = boto3.client("wafv2", region_name=ipset_region)
-
 
 #
-# Get dict of ipset names to definitions
-# Boto3 WAF apparently doesn't support paginators :(
+# Iterate over the ipsets listed in the SSM param "waf_ipsets"
 #
-def existing_ipsets():
-    result = {}
-
-    next_marker = None
-    while True:
-        params = { "Scope": ipset_scope }
-        if next_marker:
-            params["NextMarker"] = next_marker
-        page = waf_client.list_ip_sets(**params)
-
-        # There's always a NextMarker, so test length of Ipsets array
-        if len(page["IPSets"]) == 0:
-            break
-
-        next_marker = page["NextMarker"]
-        for ipset in page["IPSets"]:
-            logger.info("Getting existing ipset " + ipset["Name"])
-            result[ipset["Name"]] = ipset
- 
-    return result
-            
-existing_ipsets = existing_ipsets()
-
-#
-# Iterate over the ipsets in the SSM params
-#
-ssm_response = ssm_client.get_parameter(Name=SSM_PREFIX + "waf_ipsets")
-ipset_names = [x.strip() for x in ssm_response['Parameter']['Value'].split(',')] 
+ipset_names = [x.strip() for x in ssm_params["waf_ipsets"]
 for ipset_name in ipset_names:
-    ssm_response = ssm_client.get_parameter(Name=SSM_PREFIX + ipset_name)
-    ipset_src_list = [x.strip() for x in ssm_response['Parameter']['Value'].split(',')]
-
-    # Merge cidrs for all of this ipset's sources into an array
-    ipset_cidrs = []
-    for ipset_src in ipset_src_list:
-        logger.info("Processing ipset source " + ipset_src + " for ipset " + ipset_name) 
-
-        # ipset_src is a plain CIDR
-        if ipset_src[:1].isdigit():
-            ipset_cidrs.append(ipset_src)
-            
-        # ipset_src is a URL from which to download a list of CIDRs
-        else:
-            with urllib.request.urlopen(ipset_src) as ssm_response:
-                for ipset_line in ssm_response.readlines():
-                    cidr = ipset_line.decode('utf-8').strip()
-                    if cidr.startswith("#") or cidr.isspace():
-                        continue
-                    if not '/' in cidr:
-                        cidr = cidr + "/32"
-                    ipset_cidrs.append(cidr)
+               
+    if "cidrs" in ssm_params[ipset_name]:
+        ipset_cidrs += ssm_params[ipset_name]["cidrs"]
+               
+    if "cidr_list_urls" in ssm_params[ipset_name]:
+        urls = [x.strip() for x in ssm_params[ipset_name]["cidr_list_urls"].split(',')]
+        for u in urls:
+            ipset_cidrs += get_cidr_list_from_url(url)
 
     logger.info("Found " + str(len(ipset_cidrs)) + " cidrs in update for ipset " + ipset_name)
 
@@ -142,7 +161,7 @@ for ipset_name in ipset_names:
     current_ipset = waf_client.get_ip_set(
         Name=ipset_name,
         Id=existing_ipsets[ipset_name]["Id"],
-        Scope=ipset_scope,
+        Scope=ssm_params["ipset_scope"],
 	Region=ipset_region
     )
 
@@ -150,7 +169,7 @@ for ipset_name in ipset_names:
     logger.info("Updating ipset " + ipset_name)
     waf_client.update_ip_set(
         Name=ipset_name,
-        Scope=ipset_scope,
+        Scope=ssm_params["ipset_scope"],
         Id=current_ipset["IPSet"]["Id"],
         Description=description,
         Addresses=ipset_cidrs,
@@ -158,5 +177,7 @@ for ipset_name in ipset_names:
 	Region=ipset_region
     )
 
+                            
 os.remove(PID_FILE)
 logger.info( __file__  + " >>>>>>>>>> finished <<<<<<<<<<" )
+
