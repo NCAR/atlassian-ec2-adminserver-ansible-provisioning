@@ -142,13 +142,12 @@ waf_client = boto3.client("wafv2", region_name=ipset_region)
 # Iterate over the ipsets listed in the SSM param "waf_ipsets"
 #
 existing_ipsets = existing_ipsets()
-#ipset_names = [x.strip() for x in ssm_params["waf_ipsets"]]
 ipset_names = ssm_params["waf_ipsets"].split(',')
 for ipset_name in ipset_names:
     ipset_cidrs = []
     
     if ssm_params[ipset_name].get("cidrs"):
-        ipset_cidrs += ssm_params[ipset_name]["cidrs"]
+        ipset_cidrs += [x.strip() for x in ssm_params[ipset_name]["cidrs"].split(',')]
                
     if ssm_params[ipset_name].get("cidr_list_urls"):
         urls = [x.strip() for x in ssm_params[ipset_name]["cidr_list_urls"].split(',')]
@@ -162,7 +161,6 @@ for ipset_name in ipset_names:
         Name=ipset_name,
         Id=existing_ipsets[ipset_name]["Id"],
         Scope=ssm_params["ipset_scope"],
-#	Region=ipset_region
     )
 
     description = "IPSet " + ipset_name + " updated by " + __file__ + " on " + socket.getfqdn() + " at " + str(datetime.datetime.now())
@@ -174,7 +172,6 @@ for ipset_name in ipset_names:
         Description=description,
         Addresses=ipset_cidrs,
         LockToken=current_ipset["LockToken"],
-#	Region=ipset_region
     )
 
                             
