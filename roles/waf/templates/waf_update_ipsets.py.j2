@@ -144,11 +144,11 @@ waf_client = boto3.client("wafv2", region_name=ipset_region)
 existing_ipsets = existing_ipsets()
 ipset_names = [x.strip() for x in ssm_params["waf_ipsets"]]
 for ipset_name in ipset_names:
-               
-    if "cidrs" in ssm_params[ipset_name]:
+    
+    if ssm_params[ipset_name].get("cidrs"):
         ipset_cidrs += ssm_params[ipset_name]["cidrs"]
                
-    if "cidr_list_urls" in ssm_params[ipset_name]:
+    if ssm_params[ipset_name].get("cidr_list_urls"):
         urls = [x.strip() for x in ssm_params[ipset_name]["cidr_list_urls"].split(',')]
         for u in urls:
             ipset_cidrs += get_cidr_list_from_url(url)
