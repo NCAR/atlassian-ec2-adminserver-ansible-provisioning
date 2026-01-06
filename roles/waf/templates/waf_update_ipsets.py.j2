@@ -44,7 +44,7 @@ def check_pid():
 #
 # REF: https://stackoverflow.com/questions/67440569/python-convert-path-to-dict
 #
-def ssm_params():
+def get_ssm_params():
     result = {}
     ssm_response = ssm_client.get_parameters_by_path(
         Path=SSM_PREFIX,
@@ -144,7 +144,7 @@ logger.info( __file__  + " >>>>>>>>>> starting <<<<<<<<<<" )
 #
 boto3.setup_default_session(region_name="{{ aws_region }}")
 ssm_client = boto3.client("ssm")
-ssm_params = ssm_params()
+ssm_params = get_ssm_params()
 if ssm_params["ipset_scope"] == "CLOUDFRONT":
     ipset_region = "us-east-1"
 else:
