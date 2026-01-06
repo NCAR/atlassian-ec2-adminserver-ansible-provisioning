@@ -109,7 +109,9 @@ def normalize_cidr_list(c_list):
 
     # Sort
     c_list.sort()
-    
+
+    return c_list
+
 #
 # Usage and logging
 #
@@ -171,7 +173,7 @@ for ipset_name in ipset_names:
         for u in urls:
             ipset_cidrs += get_cidr_list_from_url(u)
 
-    normalize_cidr_list(ipset_cidrs)
+    ipset_cidrs = normalize_cidr_list(ipset_cidrs)
     logger.info("Found " + str(len(ipset_cidrs)) + " cidrs in update for ipset " + ipset_name)
 
     # Update ipset with new cidr list
