@@ -8,6 +8,7 @@ import boto3
 import urllib
 import socket
 import datetime
+import re
 
 CMD_BASENAME = os.path.splitext(os.path.basename(__file__))[0]
 PID_FILE = "/run/" + CMD_BASENAME
@@ -93,11 +94,22 @@ def get_cidr_list_from_url(url):
             cidr = ipset_line.decode('utf-8').strip()
             if cidr.startswith("#") or cidr.isspace():
                 continue
-            if not '/' in cidr:
-                cidr = cidr + "/32"
             cidrs.append(cidr)
     return cidrs
 
+#
+# Clean up CIDR list
+#
+def normalize_cidr_list(c_list):
+    # Add "/32" for naked IP
+    c_list = [ x + "/32" if not "/" in x else x for x in c_list ]
+
+    # Remove duplicates
+    c_list = list(set(c_list))
+
+    # Sort
+    c_list.sort()
+    
 #
 # Usage and logging
 #
@@ -145,6 +157,11 @@ existing_ipsets = existing_ipsets()
 ipset_names = ssm_params["waf_ipsets"].split(',')
 for ipset_name in ipset_names:
     ipset_cidrs = []
+
+    # For the IPV4_Allow list, always add the contents of the
+    # nat_gateway_public_ips SSM param so apps can talk to themselves
+    if re.search(r"IPV4_Allow", ipset_name):
+        ipset_cidrs.extend( ssm_params["nat_gateway_public_ips"].split(',') )
     
     if ssm_params[ipset_name].get("cidrs"):
         ipset_cidrs += [x.strip() for x in ssm_params[ipset_name]["cidrs"].split(',')]
@@ -152,8 +169,9 @@ for ipset_name in ipset_names:
     if ssm_params[ipset_name].get("cidr_list_urls"):
         urls = [x.strip() for x in ssm_params[ipset_name]["cidr_list_urls"].split(',')]
         for u in urls:
-            ipset_cidrs += get_cidr_list_from_url(url)
+            ipset_cidrs += get_cidr_list_from_url(u)
 
+    normalize_cidr_list(ipset_cidrs)
     logger.info("Found " + str(len(ipset_cidrs)) + " cidrs in update for ipset " + ipset_name)
 
     # Update ipset with new cidr list

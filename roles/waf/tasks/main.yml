@@ -33,8 +33,12 @@
     name: "waf_update_ipsets"
     special_time: "daily"
     job: /usr/local/bin/waf_update_ipsets.py
-
+    
 - name: Logrotate config for waf_update_ipsets.py
   ansible.builtin.copy:
     src: logrotate_waf_update_ipsets
     dest: /etc/logrotate.d/waf_update_ipsets
+
+# Run waf_update_ipsets.py to sync any config changes
+- name: Run waf_update_ipsets.py
+  ansible.builtin.command: /usr/local/bin/waf_update_ipsets.py
