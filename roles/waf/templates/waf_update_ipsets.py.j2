@@ -171,7 +171,11 @@ for ipset_name in ipset_names:
     if ssm_params[ipset_name].get("cidr_list_urls"):
         urls = [x.strip() for x in ssm_params[ipset_name]["cidr_list_urls"].split(',')]
         for u in urls:
-            ipset_cidrs += get_cidr_list_from_url(u)
+            # Placeholder value since SSM param can't have an empty values
+            if u == "null":
+                logger.info("No CIDR list urls found for ipset " + ipset_name)
+            else:
+                ipset_cidrs += get_cidr_list_from_url(u)
 
     ipset_cidrs = normalize_cidr_list(ipset_cidrs)
     logger.info("Found " + str(len(ipset_cidrs)) + " cidrs in update for ipset " + ipset_name)
