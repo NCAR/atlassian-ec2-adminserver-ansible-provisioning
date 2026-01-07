@@ -175,7 +175,7 @@ for ipset_name in ipset_names:
         ipset_cidrs += [x.strip() for x in cidr.split(',')]
 
     # CIDR list URLs
-    cidr_list_urls = ssm_params[ipset_name]["cidr_list_urls")
+    cidr_list_urls = ssm_params[ipset_name]["cidr_list_urls"]
     urls = [x.strip() for x in cidr_list_urls.split(',')]
     for u in urls:
         # Placeholder value since SSM param can't have an empty values
