@@ -4,6 +4,8 @@ collections:
     version: "10.1.2"
   - name: ansible.posix
     version: "1.5.4"
+  - name: checkmk.general
+    version: "7.1.0"
   # - name: community.docker
   #   version: "3.9.0"
   # - name: community.general

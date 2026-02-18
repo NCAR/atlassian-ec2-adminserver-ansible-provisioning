@@ -16,6 +16,7 @@
     - role: linux_common
     - role: aws_shared_fs_config
     - role: goaccess
+    - role: checkmk.general.server
     - role: nginx
     - role: waf
       
