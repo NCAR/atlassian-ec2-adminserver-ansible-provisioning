@@ -14,7 +14,9 @@ CMD_BASENAME = os.path.splitext(os.path.basename(__file__))[0]
 PID_FILE = "/run/" + CMD_BASENAME
 LOGFILE = "/var/log/" +  CMD_BASENAME + ".log"
 SSM_PREFIX = "/infrastructure/" # FIXME should be variable
-    
+USER_AGENT = "Mozilla/5.0" # Cloudflare blocks default urllib UA
+
+
 #
 # Only allow single instance of script to run
 #
@@ -89,7 +91,11 @@ def existing_ipsets():
 #
 def get_cidr_list_from_url(url):
     cidrs = []
-    with urllib.request.urlopen(url) as ssm_response:
+    request = urllib.request.Request(
+        url, 
+        headers={'User-Agent': USER_AGENT}
+    )
+    with urllib.request.urlopen(request) as ssm_response:
         for ipset_line in ssm_response.readlines():
             cidr = ipset_line.decode('utf-8').strip()
             if cidr.startswith("#") or cidr.isspace():
