@@ -34,7 +34,7 @@ done
 while [ 1 ]; do
     command_status=$(
 	aws ssm get-command-invocation \
-	    --region $REGION \	    
+	    --region $REGION \
 	    --command-id $command_id \
 	    --instance-id $INSTANCE_ID | jq -r '.Status' 2>/dev/null
 		  )
