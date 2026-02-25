@@ -10,10 +10,16 @@ if ! test -n "$package"; then
     cat <<USAGE
 Usage: $0 package
 
-Install or update an SSM package.
+Install or update an SSM debian package.
 USAGE
     exit 1
 fi
+
+# Test if package already installed
+if dpkg -s $package >/dev/null 2>&1; then
+    exit
+fi
+
 
 while [ 1 ]; do
     command_id=$(
