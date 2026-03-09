@@ -13,10 +13,11 @@
 	     </Location>
 
 	     # goaccess
-	     <Location /goaccess>
-	     	 Alias /goaccess_data/www
+	     Alias /goaccess/ /goaccess_data/www/
+	     <Directory /goaccess_data/www/>
 		 Options Indexes FollowSymLinks
 		 Require all granted
-	     </Location>
+	     </Directory>
+
 
 </VirtualHost>
