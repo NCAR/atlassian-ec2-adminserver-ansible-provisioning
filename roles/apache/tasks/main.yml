@@ -1,5 +1,17 @@
 ---
 
+- name: Install config to restrict apache to ucar network
+  src: aaa_restrict_to_ucar_net.conf
+  dest: /etc/apache2/conf-available/aaa_restrict_to_ucar_net.conf
+  notify:
+    - Restart apache
+ 
+- name: Enable config to restrict apache to ucar network
+  src: /etc/apache2/conf-available/aaa_restrict_to_ucar_net.conf
+  dest: /etc/apache2/conf-enabled/aaa_restrict_to_ucar_net.conf
+  notify:
+    - Restart apache
+    
 - name: Install apache adminserver site conf file
   ansible.builtin.template:  
     src: adminserver.conf.j2
@@ -10,6 +22,14 @@
   notify:
     - Restart apache
 
+- name: Enable apache adminserver site
+  ansible.builtin.file:
+    src: /etc/apache2/sites-available/adminserver.conf
+    dest: /etc/apache2/sites-enabled/adminserver.conf
+    state: link
+  notify:
+    - Restart apache
+    
 - name: Add alias for goaccess
   ansible.builtin.blockinfile:
     path: /etc/apache2/mods-enabled/alias.conf
@@ -25,13 +45,6 @@
   notify:
     - Restart apache
       
-- name: Enable apache adminserver site
-  ansible.builtin.file:
-    src: /etc/apache2/sites-available/adminserver.conf
-    dest: /etc/apache2/sites-enabled/adminserver.conf
-    state: link
-  notify:
-    - Restart apache
     
 
   

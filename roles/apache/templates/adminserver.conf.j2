@@ -1,5 +1,10 @@
-# NOTE: goaccess configuration is in /etc/apache2/mods-enabled/alias.conf;
+# NOTE:
+#
+# goaccess configuration is in /etc/apache2/mods-enabled/alias.conf;
 # doesn't work in VirtualHost
+#
+# checkmk config is in /omd/apache/checkmk.conf and is managed by checkmk
+#
 
 <VirtualHost {{ proxy_name }}:80>
              ServerName {{ proxy_name }}
@@ -8,12 +13,4 @@
 	     
              ErrorLog ${APACHE_LOG_DIR}/error.log
              CustomLog ${APACHE_LOG_DIR}/access.log combined
-
-	     # checkmk
-             <Location /{{ checkmk_server_sites[0]['name'] }}>
-                 ProxyPass "http://127.0.0.1:5000/{{ checkmk_server_sites[0]['name'] }}/"
-                 ProxyPassReverse "http://127.0.0.1:5000/{{ checkmk_server_sites[0]['name'] }}/"
-	     </Location>
-
-
 </VirtualHost>
