@@ -1,0 +1,14 @@
+<VirtualHost {{ proxy_name }}:80>
+             ServerName {{ proxy_name }}
+
+             DocumentRoot /var/www/html
+	     
+             ErrorLog ${APACHE_LOG_DIR}/error.log
+             CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+	     # checkmk
+             <Location /{{ checkmk_server_sites[0]['name'] }}>
+                 ProxyPass "http://127.0.0.1:5000/{{ checkmk_server_sites[0]['name'] }}/"
+                 ProxyPassReverse "http://127.0.0.1:5000/{{ checkmk_server_sites[0]['name'] }}/"
+	     </Location>
+</VirtualHost>

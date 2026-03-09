@@ -1,0 +1,20 @@
+---
+
+- name: Install apache adminserver site conf file
+  ansible.builtin.template:  
+    src: adminserver.conf.j2
+    dest: /etc/apache2/sites-available/adminserver.conf
+    owner: "root"
+    group: "root"
+    mode: '0644'
+
+- name: Enable apache adminserver site
+  ansible.builtin.file:
+    src: /etc/apache2/sites-available/adminserver.conf
+    dest: /etc/apache2/sites-enabled/adminserver.conf
+    state: link
+  notify:
+    - Restart apache
+    
+
+  
