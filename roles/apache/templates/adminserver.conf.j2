@@ -11,4 +11,12 @@
                  ProxyPass "http://127.0.0.1:5000/{{ checkmk_server_sites[0]['name'] }}/"
                  ProxyPassReverse "http://127.0.0.1:5000/{{ checkmk_server_sites[0]['name'] }}/"
 	     </Location>
+
+	     # goaccess
+	     <Location /goaccess>
+	     	 Alias /goaccess_data/www
+		 Options Indexes FollowSymLinks
+		 Require all granted
+	     </Location>
+
 </VirtualHost>
