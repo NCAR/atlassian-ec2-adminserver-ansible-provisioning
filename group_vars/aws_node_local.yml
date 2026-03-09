@@ -44,7 +44,7 @@ checkmk_server_configure_firewall: false
 checkmk_server_cleanup: true
 # Site name must be <= 16 chars
 checkmk_server_sites:
-  - name: atlassian
+  - name: checkmk
     version: "{{ checkmk_server_version }}"
     edition: "{{ checkmk_server_edition }}"
     state: 'started'
