@@ -10,6 +10,21 @@
   notify:
     - Restart apache
 
+- name: Add alias for goaccess
+  ansible.builtin.blockinfile:
+    path: /etc/apache2/mods-enabled/alias.conf
+    append_newline: true
+    prepend_newline: true
+    block: |
+      # goaccess
+      Alias "/goaccess" "/goaccess_data/www"
+      <Directory "/goaccess_data/www">
+          Options Indexes FollowSymLinks
+          Require all granted
+      </Directory>
+  notify:
+    - Restart apache
+      
 - name: Enable apache adminserver site
   ansible.builtin.file:
     src: /etc/apache2/sites-available/adminserver.conf
