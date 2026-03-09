@@ -11,6 +11,7 @@
   ansible.builtin.file:
     src: /etc/apache2/conf-available/aaa_restrict_to_ucar_net.conf
     dest: /etc/apache2/conf-enabled/aaa_restrict_to_ucar_net.conf
+    state: link
   notify:
     - Restart apache
     
