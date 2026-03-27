@@ -14,6 +14,7 @@
 
   roles:
     - role: linux_common
+    - role: unbound
     - role: aws_shared_fs_config
     - role: goaccess
     - role: checkmk.general.server
