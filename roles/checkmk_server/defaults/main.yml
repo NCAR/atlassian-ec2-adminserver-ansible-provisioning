@@ -1,0 +1,19 @@
+---
+
+checkmk_server_version: "{{ lookup('env', 'CHECKMK_SERVER_VERSION') }}"
+checkmk_server_edition: cre
+checkmk_server_no_log: false
+checkmk_server_configure_firewall: false
+checkmk_server_cleanup: true
+# Site name must be <= 16 chars
+checkmk_server_sites:
+  - name: checkmk
+    version: "{{ checkmk_server_version }}"
+    edition: "{{ checkmk_server_edition }}"
+    state: 'started'
+    update_conflict_resolution: 'abort'
+    admin_pw: "{{ lookup('env', 'CHECKMK_ADMIN_PW') }}"
+    omd_auto_restart: true
+    omd_config:
+      - var: AUTOSTART
+        value: 'on'

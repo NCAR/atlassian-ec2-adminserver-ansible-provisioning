@@ -44,26 +44,7 @@ atl_unbound_ucar_forward: 8.8.8.8
 # Where unbound forwards DNS requests to generally
 atl_unbound_forward: 10.0.0.2
 
-#
-# Checkmk
-#
-checkmk_server_version: "{{ lookup('env', 'CHECKMK_SERVER_VERSION') }}"
-checkmk_server_edition: cre
-checkmk_server_no_log: false
-checkmk_server_configure_firewall: false
-checkmk_server_cleanup: true
-# Site name must be <= 16 chars
-checkmk_server_sites:
-  - name: checkmk
-    version: "{{ checkmk_server_version }}"
-    edition: "{{ checkmk_server_edition }}"
-    state: 'started'
-    update_conflict_resolution: 'abort'
-    admin_pw: "{{ lookup('env', 'CHECKMK_ADMIN_PW') }}"
-    omd_auto_restart: true
-    omd_config:
-      - var: AUTOSTART
-        value: 'on'
+
 
 # Create an automation user.
 - name: "Create an automation user."
