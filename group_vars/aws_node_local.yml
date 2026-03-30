@@ -65,4 +65,18 @@ checkmk_server_sites:
       - var: AUTOSTART
         value: 'on'
 
-#  - name: 'atlassian_staging'
+# Create an automation user.
+- name: "Create an automation user."
+  checkmk.general.user:
+    server_url: "http://{{ lookup('amazon.aws.aws_ssm', '/infrastructure/adminserver_private_dns) | from_json }}/"
+    site: "checkmk"
+    api_user: "registration"
+    api_secret: "mysecret"
+    name: "registration"
+    fullname: "Registration User"
+    auth_type: "automation"
+    password: "ZGSDHUVDSKJHSDF"
+    roles:
+      - "registration"
+    state: "present"
+
