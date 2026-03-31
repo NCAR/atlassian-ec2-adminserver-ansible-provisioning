@@ -34,5 +34,7 @@
        rm $tmpfile
        
        # Alias to run ansible
-       alias run_ansible='(cd /var/ansible/atlassian-ec2-ansible-provisioning/ && git pull && for pb in $ATL_PLAYBOOKS; do ansible-playbook -i inv/aws_node_local $pb; done)'
-       
+       alias run_ansible='(cd /var/ansible/atlassian-ec2-ansible-provisioning/ \
+       && git pull \
+       && ansible-galaxy collection install --requirements-file requirements.yml \
+       && for pb in $ATL_PLAYBOOKS; do ansible-playbook -i inv/aws_node_local $pb; done)'
