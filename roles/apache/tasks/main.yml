@@ -1,5 +1,14 @@
 ---
 
+- name: Enable apache header module
+  ansible.builtin.file:
+    src: /etc/apache2/mods-available/headers.load
+    dest: /etc/apache2/mods-enabled/headers.load
+    state: link
+  notify:
+    - Restart apache
+
+
 - name: Install config to restrict apache to ucar and VPC internal networks
   ansible.builtin.copy:
     src: aaa_restrict_access.conf
@@ -7,7 +16,7 @@
   notify:
     - Restart apache
  
-- name: Enable config to restrict apache to ucar network
+- name: Enable config to restrict apache
   ansible.builtin.file:
     src: /etc/apache2/conf-available/aaa_restrict_access.conf
     dest: /etc/apache2/conf-enabled/aaa_restrict_access.conf
