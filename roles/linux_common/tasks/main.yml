@@ -37,4 +37,4 @@
        alias run_ansible='(cd /var/ansible/atlassian-ec2-adminserver-ansible-provisioning \
        && git pull \
        && ansible-galaxy collection install --requirements-file requirements.yml \
-       && for pb in $ATL_PLAYBOOKS; do ansible-playbook -i inv/aws_node_local $pb; done)'
+       && for pb in $PLAYBOOKS; do ansible-playbook -i inv/aws_node_local $pb; done)'
