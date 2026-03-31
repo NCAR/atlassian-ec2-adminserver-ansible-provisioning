@@ -6,11 +6,11 @@
     server_url: "http://{{ lookup('amazon.aws.aws_ssm', '/infrastructure/adminserver_private_dns) | from_json }}/"
     site: "checkmk"
     api_user: "registration"
-    api_secret: "mysecret"
+    api_secret: 'qUXf];Di-^{1DvLY}t31RfKkwA%qO4'
     name: "registration"
     fullname: "Registration User"
     auth_type: "automation"
-    password: "ZGSDHUVDSKJHSDF"
+    password: 'qUXf];Di-^{1DvLY}t31RfKkwA%qO4'
     roles:
       - "registration"
     state: "present"
