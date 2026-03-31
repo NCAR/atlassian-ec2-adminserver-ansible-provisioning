@@ -1,9 +1,9 @@
 ---
 
-- name: Install config to restrict apache to ucar network
+- name: Install config to restrict apache to ucar and VPC internal networks
   ansible.builtin.copy:
-    src: aaa_restrict_to_ucar_net.conf
-    dest: /etc/apache2/conf-available/aaa_restrict_to_ucar_net.conf
+    src: aaa_restrict_access.conf
+    dest: /etc/apache2/conf-available/aaa_restrict_access.conf
   notify:
     - Restart apache
  
