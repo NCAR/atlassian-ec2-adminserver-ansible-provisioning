@@ -24,4 +24,4 @@
     owner: checkmk
     group: checkmk
     mode: '0600'
-    
+  notify: Restart checkmk
