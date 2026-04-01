@@ -1,17 +1,27 @@
 ---
 
-# Create an automation user.
-- name: "Create an automation user."
-  checkmk.general.user:
-    server_url: "http://{{ lookup('amazon.aws.aws_ssm', '/infrastructure/adminserver_private_dns) | from_json }}/"
-    site: "checkmk"
-    api_user: "registration"
-    api_secret: 'qUXf];Di-^{1DvLY}t31RfKkwA%qO4'
-    name: "registration"
-    fullname: "Registration User"
-    auth_type: "automation"
-    password: 'qUXf];Di-^{1DvLY}t31RfKkwA%qO4'
-    roles:
-      - "registration"
-    state: "present"
+# # Create an automation user.
+# - name: "Create an automation user."
+#   checkmk.general.user:
+#     server_url: "http://{{ lookup('amazon.aws.aws_ssm', '/infrastructure/adminserver_private_dns) | from_json }}/"
+#     site: "checkmk"
+#     api_user: "registration"
+#     api_secret: 'qUXf];Di-^{1DvLY}t31RfKkwA%qO4'
+#     name: "registration"
+#     fullname: "Registration User"
+#     auth_type: "automation"
+#     password: 'qUXf];Di-^{1DvLY}t31RfKkwA%qO4'
+#     roles:
+#       - "registration"
+#     state: "present"
 
+
+- name: "Set password for checkmk built-in agent_registration user"
+  ansible.builtin.file:
+#    content: "{{ checkmk_registration_user_secret }}"
+    content: "TestRegSecret"
+    dest: /omd/sites/checkmk/var/check_mk/web/agent_registration/automation.secret
+    owner: checkmk
+    group: checkmk
+    mode: '0600'
+    
