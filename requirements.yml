@@ -6,9 +6,10 @@ collections:
     version: "1.5.4"
   - name: checkmk.general
     version: "7.1.0"
+  - name: community.general
+    version: "12.5.0"
+
   # - name: community.docker
   #   version: "3.9.0"
-  # - name: community.general
-  #   version: "8.6.0"
   # - name: community.postgresql
   #   version: "3.4.0"

@@ -47,3 +47,4 @@ atl_unbound_forward: 10.0.0.2
 # Checkmk
 #checkmk_registration_user_secret: "{{ lookup('amazon.aws.aws_ssm', '/infrastructure/checkmk_registration_user_secret') }}"
 checkmk_registration_user_secret: "TestRegSecret"
+checkmk_agent_ingress_port: "{{ lookup('env', 'CHECKMK_AGENT_INGRESS_PORT') }}"

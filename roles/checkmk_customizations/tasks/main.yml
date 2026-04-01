@@ -15,13 +15,19 @@
 #       - "registration"
 #     state: "present"
 
-
+# FIXME need to update ~checkmk/etc/htpasswd also
 - name: "Set password for checkmk built-in agent_registration user"
   ansible.builtin.copy:
-#    content: "{{ checkmk_registration_user_secret }}"
-    content: "TestRegSecret"
+    content: "{{ checkmk_registration_user_secret }}"
     dest: /omd/sites/checkmk/var/check_mk/web/agent_registration/automation.secret
     owner: checkmk
     group: checkmk
     mode: '0600'
   notify: Restart checkmk
+
+- name: "Open port for agent registration"
+  community.general.ufw:
+    rule: allow
+    port: "{{ checkmk_agent_ingress_port }}"
+    proto: tcp
+
