@@ -8,7 +8,6 @@
   notify:
     - Restart apache
 
-
 - name: Install config to restrict apache to ucar and VPC internal networks
   ansible.builtin.copy:
     src: aaa_restrict_access.conf
