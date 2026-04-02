@@ -44,5 +44,7 @@
     api_secret: "{{ checkmk_registration_user_secret }}"
     path: "/stage-jira.ucar.edu"
     name: "stage-jira.ucar.edu"
+    attributes:
+      site: "checkmk"
     state: present
   
