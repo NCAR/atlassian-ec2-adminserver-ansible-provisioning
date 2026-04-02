@@ -19,6 +19,7 @@ s3_bucket: "{{ lookup('env', 'S3_BUCKET') }}"
 efs_path: "{{ lookup('env', 'EFS_PATH') }}"
 proxy_name: "{{ lookup('env', 'PROXY_NAME') }}"
 vpc_cidr: "{{ lookup('env', 'VPC_CIDR') }}"
+alb_hosts: "{{ lookup('env', 'ALB_HOSTS') | split(' ') }}"
 
 #
 # Vars from environment with defaults
@@ -47,7 +48,6 @@ atl_unbound_forward: 10.0.0.2
 # Checkmk
 #checkmk_registration_user_secret: "{{ lookup('amazon.aws.aws_ssm', '/infrastructure/checkmk_registration_user_secret') }}"
 checkmk_registration_user_secret: "TestRegSecret"
-#checkmk_agent_ingress_port: "{{ lookup('env', 'CHECKMK_AGENT_INGRESS_PORT') }}"
 
 # https://github.com/Checkmk/ansible-collection-checkmk.general/blob/main/roles/server/defaults/main.yml
 checkmk_server_ports:

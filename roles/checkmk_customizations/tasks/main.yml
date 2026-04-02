@@ -25,10 +25,13 @@
     mode: '0600'
   notify: Restart checkmk
 
-# - name: "Open port for agent registration"
-#   community.general.ufw:
-#     comment: "Allow agent registration"
-#     rule: allow
-#     port: "{{ checkmk_agent_ingress_port }}"
-#     proto: tcp
-
+- name: "Create folders per ALB host"
+  checkmk.general.folder:
+    server_url: "http://{{ proxy_name }}/"
+    site: checkmk
+    api_user: agent_registration
+    api_secret: "{{ checkmk_registration_user_secret }}"
+    path: "/{{ item }}"
+    name: "{{ item }}"
+    state: present
+  loop: "{{ alb_hosts }}"
