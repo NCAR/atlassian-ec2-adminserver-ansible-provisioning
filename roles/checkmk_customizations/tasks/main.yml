@@ -38,13 +38,11 @@
 
 - name: "Create folders TEST"
   checkmk.general.folder:
+    path: "/TESTFOLDER"
     server_url: "http://{{ proxy_name }}/"
     site: checkmk
     api_user: agent_registration
     api_secret: "{{ checkmk_registration_user_secret }}"
-    path: "/stage-jira.ucar.edu"
-    name: "stage-jira.ucar.edu"
-    attributes:
-      site: "checkmk"
-    state: present
+
+
   
