@@ -25,13 +25,24 @@
     mode: '0600'
   notify: Restart checkmk
 
-- name: "Create folders per ALB host"
+# - name: "Create folders per ALB host"
+#   checkmk.general.folder:
+#     server_url: "http://{{ proxy_name }}/"
+#     site: checkmk
+#     api_user: agent_registration
+#     api_secret: "{{ checkmk_registration_user_secret }}"
+#     path: "/{{ item }}"
+#     name: "{{ item }}"
+#     state: present
+#   loop: "{{ alb_hosts }}"
+
+- name: "Create folders TEST"
   checkmk.general.folder:
     server_url: "http://{{ proxy_name }}/"
     site: checkmk
     api_user: agent_registration
     api_secret: "{{ checkmk_registration_user_secret }}"
-    path: "/{{ item }}"
-    name: "{{ item }}"
+    path: "/stage-jira.ucar.edu"
+    name: "stage-jira.ucar.edu"
     state: present
-  loop: "{{ alb_hosts }}"
+  
