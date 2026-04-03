@@ -25,24 +25,16 @@
     mode: '0600'
   notify: Restart checkmk
 
-# - name: "Create folders per ALB host"
-#   checkmk.general.folder:
-#     server_url: "http://{{ proxy_name }}/"
-#     site: checkmk
-#     api_user: agent_registration
-#     api_secret: "{{ checkmk_registration_user_secret }}"
-#     path: "/{{ item }}"
-#     name: "{{ item }}"
-#     state: present
-#   loop: "{{ alb_hosts }}"
-
-- name: "Create folders TEST"
+# Periods are not allowed in folder names
+- name: "Create folders per ALB host"
   checkmk.general.folder:
-    path: "/TESTFOLDER"
-    server_url: "http://{{ proxy_name }}/"
+    server_url: "http://{{ ansible_facts['fqdn'] }}/"
     site: checkmk
     api_user: agent_registration
     api_secret: "{{ checkmk_registration_user_secret }}"
-
+    path: "/{{ item | split('.')[0] }}"
+    name: "{{ item| split('.')[0] }}"
+    state: present
+  loop: "{{ alb_hosts }}"
 
   
