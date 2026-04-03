@@ -37,4 +37,12 @@
     state: present
   loop: "{{ alb_hosts }}"
 
-  
+
+# FIXME should this be a handler?
+- name: "Start activation including foreign changes."
+  checkmk.general.activation:
+    server_url: "http://{{ ansible_facts['fqdn'] }}/"
+    site: checkmk
+    api_user: agent_registration
+    api_secret: "{{ checkmk_registration_user_secret }}"
+    force_foreign_changes: true
