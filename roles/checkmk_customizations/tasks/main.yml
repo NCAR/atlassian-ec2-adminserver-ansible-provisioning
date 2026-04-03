@@ -33,7 +33,7 @@
     api_user: agent_registration
     api_secret: "{{ checkmk_registration_user_secret }}"
     path: "/{{ item | split('.')[0] }}"
-    name: "{{ item| split('.')[0] }}"
+    name: "{{ item | split('.')[0] }}"
     state: present
   loop: "{{ alb_hosts }}"
 
