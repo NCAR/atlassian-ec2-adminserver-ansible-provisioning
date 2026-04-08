@@ -46,3 +46,20 @@
     api_user: agent_registration
     api_secret: "{{ checkmk_registration_user_secret }}"
     force_foreign_changes: true
+
+
+- name: Create checkmk registration user
+  checkmk.general.user:
+    server_url: "http://localhost/"
+    site: checkmk
+    api_user: "{{ checkmk_registration_user }}"
+    api_secret: "{{ checkmk_registration_password }}"
+    name: "{{ checkmk_registration_user }}"
+    fullname: "{{ checkmk_registration_user }}"
+    auth_type: "automation"
+    password: "{{ checkmk_registration_password }}"
+    roles:
+      - "admin"
+#      - "agent_registration"
+    state: "present"
+    
