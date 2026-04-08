@@ -4,8 +4,10 @@
   checkmk.general.user:
     server_url: "http://localhost/"
     site: checkmk
-    api_user: "{{ checkmk_registration_user }}"
-    api_secret: "{{ checkmk_registration_password }}"
+    api_user: cmkadmin
+    api_secret: "Hmm4tWi13?"
+#    api_user: "{{ checkmk_registration_user }}"
+#    api_secret: "{{ checkmk_registration_password }}"
     name: "{{ checkmk_registration_user }}"
     fullname: "{{ checkmk_registration_user }}"
     auth_type: "automation"
