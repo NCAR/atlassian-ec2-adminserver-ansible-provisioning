@@ -1,30 +1,5 @@
 ---
 
-# # Create an automation user.
-# - name: "Create an automation user."
-#   checkmk.general.user:
-#     server_url: "http://{{ lookup('amazon.aws.aws_ssm', '/infrastructure/adminserver_private_dns) | from_json }}/"
-#     site: "checkmk"
-#     api_user: "registration"
-#     api_secret: 'qUXf];Di-^{1DvLY}t31RfKkwA%qO4'
-#     name: "registration"
-#     fullname: "Registration User"
-#     auth_type: "automation"
-#     password: 'qUXf];Di-^{1DvLY}t31RfKkwA%qO4'
-#     roles:
-#       - "registration"
-#     state: "present"
-
-# # FIXME need to update ~checkmk/etc/htpasswd also; need to specify algo? Failed via cli, worked via web gui
-# - name: "Set password for checkmk built-in agent_registration user"
-#   ansible.builtin.copy:
-#     content: "{{ checkmk_registration_user_secret }}"
-#     dest: /omd/sites/checkmk/var/check_mk/web/agent_registration/automation.secret
-#     owner: checkmk
-#     group: checkmk
-#     mode: '0600'
-#   notify: Restart checkmk
-
 # Periods are not allowed in folder names
 - name: "Create folders per ALB host"
   checkmk.general.folder:
@@ -60,6 +35,4 @@
     password: "{{ checkmk_registration_password }}"
     roles:
       - "admin"
-#      - "agent_registration"
     state: "present"
-#    notify: Restart checkmk    
