@@ -1,0 +1,107 @@
+---
+
+# # https://github.com/fentik/JMXQuery.git
+# # This is a fork of the original that fixes json parsing
+# - name: Install jmxquery python module
+#   ansible.builtin.pip:
+#     name: git+https://github.com/fentik/JMXQuery.git#subdirectory=python
+#     extra_args: "--break-system-packages"
+
+# # Config file is app specific, so in app config role
+# - name: Install JMX monitoring script
+#   ansible.builtin.copy:
+#     src: jmx_monitor.py
+#     dest: /usr/local/bin/jmx_monitor.py
+#     owner: root
+#     group: root
+#     mode: '0555'
+
+- name: Create checkmk service folder
+  checkmk.general.folder:
+    path: "{{ checkmk_agent_folder }}"
+    server_url: "{{ checkmk_server_url }}"
+    site: "{{ checkmk_agent_site }}"
+    api_user: "{{ checkmk_agent_user }}"
+    api_secret: "{{ checkmk_agent_secret }}"
+    validate_certs: false
+
+- name: Create checkmk active check for the web site
+  checkmk.general.rule:
+    server_url: "{{ checkmk_server_url }}"
+    site: "{{ checkmk_agent_site }}"
+    api_user: "{{ checkmk_agent_user }}"
+    api_secret: "{{ checkmk_agent_secret }}"
+    validate_certs: false
+    ruleset: "active_checks:httpv2"
+    rule:
+      conditions:
+        host_name:
+          match_on:
+            - "{{ ansible_facts.hostname }}"
+          operator: "one_of"
+        host_tags: []
+        host_labels: []
+        service_labels: []
+      properties:
+        description: "HTTP Check"
+        comment: "Managed by Ansible"
+        disabled: false
+      value_raw: "{'endpoints': [{'service_name': {'prefix': 'auto', 'name': '{{ atl_proxy_name }}'}, 'url': 'https://{{ atl_proxy_name }}'}], 'standard_settings': {}}"
+      location:
+        folder: "{{ checkmk_agent_folder }}"
+#        position: "top"
+    state: "present"
+  
+- name: Import checkmk agent role
+  ansible.builtin.import_role:
+    name: checkmk.general.agent
+
+- name: Download jolokia agent jar
+  ansible.builtin.get_url:
+    url: "{{ jolokia_agent_download_url }}"
+    dest: "{{ jolokia_agent_jar }}"
+    mode: '0440'
+    owner: "{{ atl_product_user }}"
+    group: "{{ atl_product_user }}"
+
+- name: Install jolokia.cfg
+  ansible.builtin.template:
+    src: jolokia.cfg.j2
+    dest: /etc/check_mk/jolokia.cfg
+
+- name: Java jolokia startup
+  ansible.builtin.copy:
+    content: "-javaagent:{{ jolokia_agent_jar }}=port={{ jolokia_port }},host=localhost"
+    dest: "{{ atl_jvm_custom_opts_dir }}/jolokia"
+
+- name: Install checkmk jolokia plugin
+  ansible.builtin.get_url:
+    url: "{{ jolokia_checkmk_plugin_url }}"
+    dest: /usr/lib/check_mk_agent/plugins/mk_jolokia.py
+    mode: "0750"
+
+- name: Register status of mk-sql config file
+  ansible.builtin.stat:
+    path: /usr/lib/check_mk_agent/plugins/mk_mysql
+  register: mk_sql_plugin
+
+- name: Install mk-sql plugin file
+  ansible.builtin.get_url:
+    url: "{{ checkmk_server_url }}/{{ checkmk_agent_site }}/check_mk/agents/plugins/mk_mysql"
+    dest: /usr/lib/check_mk_agent/plugins/mk_mysql
+    mode: "0750"
+  when: not mk_sql_plugin.stat.exists
+  
+- name: Create mycnf for mk-sql
+  ansible.builtin.shell:
+    cmd: |
+      mv $(/usr/local/bin/create_mycnf.sh) /etc/check_mk/mysql.cfg
+      chmod 400 /etc/check_mk/mysql.cfg
+    creates: /etc/check_mk/mysql.cfg
+
+    
+
+
+
+  
+  

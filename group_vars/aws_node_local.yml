@@ -35,7 +35,7 @@ goaccess_last_key_file: "{{ efs_mountpoint }}/last_key"
 web_root: "{{ efs_mountpoint }}/www"
 
 #
-# Checkmk
+# Checkmk server
 #
 checkmk_server_version: "{{ lookup('env', 'CHECKMK_SERVER_VERSION') }}"
 checkmk_server_edition: cre
@@ -55,4 +55,47 @@ checkmk_server_sites:
       - var: AUTOSTART
         value: 'on'
 
-#  - name: 'atlassian_staging'
+
+#
+# Checkmk agent
+# https://galaxy.ansible.com/ui/repo/published/checkmk/general/content/role/agent/
+#
+checkmk_agent_version: "{{ checkmk_server_version }}"
+checkmk_agent_edition: cre
+checkmk_agent_server_protocol: http
+checkmk_agent_server: "{{ ansible_facts['hostname'] }}"
+
+#checkmk_agent_server_port: 8001
+
+checkmk_agent_server_validate_certs: false
+checkmk_agent_site: checkmk
+
+checkmk_registration_secret_arn: "{{ lookup('env', 'CHECKMK_REGISTRATION_SECRET_ARN') }}"
+checkmk_registration_credential: "{{ lookup('amazon.aws.aws_secret', checkmk_registration_secret_arn, on_denied='error') | from_json }}"
+checkmk_agent_user: "{{ checkmk_registration_credential['user'] }}"
+checkmk_agent_secret: "{{ checkmk_registration_credential['password'] }}"
+checkmk_server_url: "{{ checkmk_agent_server_protocol }}://{{ checkmk_agent_server }}"
+
+checkmk_agent_auto_activate: true
+checkmk_agent_force_foreign_changes: true
+checkmk_agent_add_host: true
+checkmk_agent_host_name: "{{ ansible_facts['nodename'] }}"
+checkmk_agent_folder: "/{{ atl_proxy_name | split('.') | first }}"
+checkmk_agent_discover: true
+checkmk_agent_mode: pull
+
+# FIXME needs to be set up on server
+checkmk_agent_update: false
+
+checkmk_agent_tls: false
+checkmk_agent_force_install: false
+
+# False for debugging
+checkmk_agent_no_log: false
+
+# This breaks atlassian unless we specify ports somewhere
+checkmk_agent_configure_firewall: false
+
+# FIXME check this works
+checkmk_agent_host_attributes:
+  alias: "{{ proxy_name | split('.') | first }} ec2"

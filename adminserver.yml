@@ -17,6 +17,7 @@
     - role: aws_shared_fs_config
     - role: goaccess
     - role: checkmk.general.server
+    - role: checkmk
     - role: apache
     - role: waf
       
