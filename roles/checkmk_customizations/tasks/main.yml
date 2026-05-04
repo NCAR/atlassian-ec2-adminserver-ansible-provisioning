@@ -1,0 +1,45 @@
+---
+
+#
+# This user has to be created by hand b/c ansible needs a pre-existing
+# API user to create new users
+#
+# - name: Create checkmk registration user
+#   checkmk.general.user:
+#     server_url: "http://localhost/"
+#     site: checkmk
+#     api_user: cmkadmin
+#     api_secret:
+# #    api_user: "{{ checkmk_registration_user }}"
+# #    api_secret: "{{ checkmk_registration_password }}"
+#     name: "{{ checkmk_registration_user }}"
+#     fullname: "{{ checkmk_registration_user }}"
+#     auth_type: "automation"
+#     password: "{{ checkmk_registration_password }}"
+#     roles:
+#       - "admin"
+#     state: "present"
+
+
+# Periods are not allowed in folder names
+- name: "Create folders per ALB host"
+  checkmk.general.folder:
+    server_url: "http://{{ ansible_facts['fqdn'] }}/"
+    site: checkmk
+    api_user: "{{ checkmk_registration_user }}"
+    api_secret: "{{ checkmk_registration_password }}"
+    path: "/{{ item | split('.') | first }}"
+    name: "{{ item | split('.') | first }}"
+    state: present
+  loop: "{{ alb_hosts }}"
+
+
+# FIXME should this be a handler?
+- name: "Start activation including foreign changes."
+  checkmk.general.activation:
+    server_url: "http://{{ ansible_facts['fqdn'] }}/"
+    site: checkmk
+    api_user: "{{ checkmk_registration_user }}"
+    api_secret: "{{ checkmk_registration_password }}"
+    force_foreign_changes: true
+
