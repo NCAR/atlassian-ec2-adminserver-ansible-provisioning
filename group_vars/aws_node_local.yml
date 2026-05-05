@@ -80,9 +80,9 @@ checkmk_server_sites:
 # Checkmk agent
 # https://galaxy.ansible.com/ui/repo/published/checkmk/general/content/role/agent/
 #
-# NOTE: agent version must be specified separately from server version
-# b/c server must be upgraded first since it serves agent package
-checkmk_agent_version:  2.4.0p21
+# NOTE: when upgrading server, comment out checkmk role in adminserver.yml since
+# the new agent version won't be available yet from the server
+checkmk_agent_version: "{{ checkmk_server_version }}"
 checkmk_agent_edition: cre
 checkmk_agent_server_protocol: http
 checkmk_agent_server: "{{ ansible_facts['hostname'] }}"
