@@ -26,8 +26,8 @@
   checkmk.general.folder:
     server_url: "http://{{ ansible_facts['fqdn'] }}/"
     site: checkmk
-    api_user: "{{ checkmk_registration_user }}"
-    api_secret: "{{ checkmk_registration_password }}"
+    api_user: "{{ checkmk_agent_user }}"
+    api_secret: "{{ checkmk_agent_secret }}"
     path: "/{{ item | split('.') | first }}"
     name: "{{ item | split('.') | first }}"
     state: present
@@ -39,7 +39,7 @@
   checkmk.general.activation:
     server_url: "http://{{ ansible_facts['fqdn'] }}/"
     site: checkmk
-    api_user: "{{ checkmk_registration_user }}"
-    api_secret: "{{ checkmk_registration_password }}"
+    api_user: "{{ checkmk_agent_user }}"
+    api_secret: "{{ checkmk_agent_secret }}"
     force_foreign_changes: true
 
