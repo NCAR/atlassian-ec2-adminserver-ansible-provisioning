@@ -51,9 +51,9 @@ atl_unbound_forward: 10.0.0.2
 # https://github.com/Checkmk/ansible-collection-checkmk.general/blob/main/roles/server/defaults/main.yml
 #
 checkmk_registration_secret_arn: "{{ lookup('env', 'CHECKMK_REGISTRATION_SECRET_ARN') }}"
-checkmk_registration_credential: "{{ lookup('amazon.aws.aws_secret', checkmk_registration_secret_arn, on_denied='error')}}"
-checkmk_registration_user: "{{ checkmk_registration_credential | json_query('user') }}"
-checkmk_registration_password: "{{ checkmk_registration_credential | json_query('password') }}"
+checkmk_registration_credential: "{{ lookup('amazon.aws.aws_secret', checkmk_registration_secret_arn, on_denied='error') | from_json }}"
+checkmk_server_url: "{{ checkmk_agent_server_protocol }}://{{ checkmk_agent_server }}"
+
 checkmk_server_version: "{{ lookup('env', 'CHECKMK_SERVER_VERSION') }}"
 checkmk_server_edition: cre
 checkmk_server_no_log: false
@@ -94,7 +94,6 @@ checkmk_agent_server_validate_certs: false
 checkmk_agent_site: checkmk
 checkmk_agent_user: "{{ checkmk_registration_credential['user'] }}"
 checkmk_agent_secret: "{{ checkmk_registration_credential['password'] }}"
-checkmk_server_url: "{{ checkmk_agent_server_protocol }}://{{ checkmk_agent_server }}"
 checkmk_agent_auto_activate: true
 checkmk_agent_force_foreign_changes: true
 checkmk_agent_add_host: true
