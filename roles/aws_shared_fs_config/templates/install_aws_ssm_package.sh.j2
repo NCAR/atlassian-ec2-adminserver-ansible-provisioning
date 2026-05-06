@@ -2,7 +2,7 @@
 
 # Install or update a package via ssm
 
-INSTANCE_ID="{{ ansible_ec2_instance_id }}"
+INSTANCE_ID="{{ ansible_facts['ec2_instance_id'] }}"
 REGION="{{ aws_region }}"
 
 package=$1
