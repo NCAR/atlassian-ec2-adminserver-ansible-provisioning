@@ -136,11 +136,13 @@ if args.debug:
     log_args["stream"] = sys.stderr
 else:
     log_args["level"] = logging.INFO
-    if args.dry_run:
-        log_args["stream"] = sys.stderr
-    else:
-        log_args["filename"["level"] = LOGFILE
-        log_args["filemode"["level"] =  "a"
+
+if args.dry_run:
+    log_args["stream"] = sys.stderr
+else:
+    log_args["filename"] = LOGFILE
+    log_args["filemode"] =  "a"
+
 
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', **log_args)
 logger = logging.getLogger(__name__)
