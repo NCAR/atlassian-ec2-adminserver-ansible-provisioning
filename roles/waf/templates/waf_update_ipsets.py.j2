@@ -9,13 +9,13 @@ import urllib
 import socket
 import datetime
 import re
+import pprint
 
 CMD_BASENAME = os.path.splitext(os.path.basename(__file__))[0]
 PID_FILE = "/run/" + CMD_BASENAME
 LOGFILE = "/var/log/" +  CMD_BASENAME + ".log"
-SSM_PREFIX = "/infrastructure/" # FIXME should be variable
+SSM_PREFIX = "/infrastructure/"
 USER_AGENT = "Mozilla/5.0" # Cloudflare blocks default urllib UA
-
 
 #
 # Only allow single instance of script to run
@@ -127,19 +127,21 @@ parser = argparse.ArgumentParser(
     epilog="By default logs to file: " + LOGFILE
 )
 parser.add_argument("-d", "--debug", action="store_true", default=False, help="Log to stderr at DEBUG level")
+parser.add_argument("-n", "--dry-run", action="store_true", default=False, help="Log to stderr without performing updates")
 args = parser.parse_args()
+
+log_args = {}
 if args.debug:
-    log_args = {
-        "level": logging.DEBUG,
-        "stream": sys.stderr
-    }
+    log_args["level"] = logging.DEBUG
+    log_args["stream"] = sys.stderr
 else:
-    log_args = {
-        "level": logging.INFO,
-        "filename": LOGFILE,
-        "filemode": "a",
-        "level": logging.INFO
-    }
+    log_args["level"] = logging.INFO
+    if args.dry_run:
+        log_args["stream"] = sys.stderr
+    else:
+        log_args["filename"["level"] = LOGFILE
+        log_args["filemode"["level"] =  "a"
+
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', **log_args)
 logger = logging.getLogger(__name__)
 
@@ -171,14 +173,13 @@ for ipset_name in ipset_names:
     if re.search(r"IPV4_Allow", ipset_name):
         ipset_cidrs.extend( ssm_params["nat_gateway_public_ips"].split(',') )
 
-
     # Plain CIDRs
     cidrs = ssm_params[ipset_name]["cidrs"]
     # Placeholder value since SSM param can't have an empty values
     if cidrs == "null":
         logger.info("No CIDRs found for ipset " + ipset_name)
     else:
-        ipset_cidrs += [x.strip() for x in cidr.split(',')]
+        ipset_cidrs += [x.strip() for x in cidrs.split(',')]
 
     # CIDR list URLs
     cidr_list_urls = ssm_params[ipset_name]["cidr_list_urls"]
@@ -192,7 +193,8 @@ for ipset_name in ipset_names:
 
     ipset_cidrs = normalize_cidr_list(ipset_cidrs)
     logger.info("Found " + str(len(ipset_cidrs)) + " cidrs in update for ipset " + ipset_name)
-
+    logger.debug( pprint.pformat(ipset_cidrs) )
+    
     # Update ipset with new cidr list
     current_ipset = waf_client.get_ip_set(
         Name=ipset_name,
@@ -202,6 +204,10 @@ for ipset_name in ipset_names:
 
     description = "IPSet " + ipset_name + " updated by " + __file__ + " on " + socket.getfqdn() + " at " + str(datetime.datetime.now())
     logger.info("Updating ipset " + ipset_name)
+
+    if args.dry_run:
+        continue
+    
     waf_client.update_ip_set(
         Name=ipset_name,
         Scope=ssm_params["ipset_scope"],
