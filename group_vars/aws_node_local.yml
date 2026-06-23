@@ -14,12 +14,14 @@
 # Vars from environment
 #
 alb_access_logs_prefix: "{{ lookup('env', 'ALB_ACCESS_LOGS_PREFIX') }}"
+alb_hosts: "{{ lookup('env', 'ALB_HOSTS') | split(' ') }}"
 aws_region: "{{ lookup('env', 'AWS_REGION') }}"
-s3_bucket: "{{ lookup('env', 'S3_BUCKET') }}"
 efs_path: "{{ lookup('env', 'EFS_PATH') }}"
 proxy_name: "{{ lookup('env', 'PROXY_NAME') }}"
+s3_bucket: "{{ lookup('env', 'S3_BUCKET') }}"
+ssm_prefix: "{{ lookup('env', 'SSM_PREFIX') }}"
+ssm_root: "{{ lookup('env', 'SSM_ROOT') }}"
 vpc_cidr: "{{ lookup('env', 'VPC_CIDR') }}"
-alb_hosts: "{{ lookup('env', 'ALB_HOSTS') | split(' ') }}"
 
 #
 # Vars from environment with defaults

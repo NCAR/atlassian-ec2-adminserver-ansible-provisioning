@@ -14,7 +14,7 @@ import pprint
 CMD_BASENAME = os.path.splitext(os.path.basename(__file__))[0]
 PID_FILE = "/run/" + CMD_BASENAME
 LOGFILE = "/var/log/" +  CMD_BASENAME + ".log"
-SSM_PREFIX = "/infrastructure/"
+SSM_PATH = "{{ ssm_root }}{{ ssm_prefix }}/"
 USER_AGENT = "Mozilla/5.0" # Cloudflare blocks default urllib UA
 
 #
@@ -49,7 +49,7 @@ def check_pid():
 def get_ssm_params():
     result = {}
     ssm_response = ssm_client.get_parameters_by_path(
-        Path=SSM_PREFIX,
+        Path=SSM_PATH,
         Recursive=True)
     for p in ssm_response["Parameters"]:
         path_elements = p["Name"].lstrip("/").split("/")
