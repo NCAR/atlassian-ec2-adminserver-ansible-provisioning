@@ -7,20 +7,12 @@
   tags:
     - notest
 
-- name: Install script to install/upgrade ssm package
-  ansible.builtin.template:
-    src: install_aws_ssm_package.sh.j2
-    dest: /usr/local/bin/install_aws_ssm_package.sh
-    owner: "root"
-    group: "root"
-    mode: '0755'
-
 - name: Gather the package facts
   ansible.builtin.package_facts:
     manager: auto
     
 - name: Install amazon-efs-utils package
-  ansible.builtin.shell:  /usr/local/bin/install_aws_ssm_package.sh amazon-efs-utils
+  ansible.builtin.shell: '/usr/bin/curl https://amazon-efs-utils.aws.com/efs-utils-installer.sh | sudo sh -s -- --install'
   when: "'amazon-efs-utils' not in ansible_facts.packages"
   
 - name: Create mountpoint
