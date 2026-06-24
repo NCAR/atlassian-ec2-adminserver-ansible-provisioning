@@ -70,7 +70,7 @@ def existing_ipsets():
 
     next_marker = None
     while True:
-        params = { "Scope": ssm_params["ipset_scope"] }
+        params = { "Scope": "Regional" }
         if next_marker:
             params["NextMarker"] = next_marker
         page = waf_client.list_ip_sets(**params)
