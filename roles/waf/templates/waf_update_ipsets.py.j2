@@ -16,6 +16,7 @@ PID_FILE = "/run/" + CMD_BASENAME
 LOGFILE = "/var/log/" +  CMD_BASENAME + ".log"
 SSM_PATH = "{{ ssm_root }}{{ ssm_prefix }}/"
 USER_AGENT = "Mozilla/5.0" # Cloudflare blocks default urllib UA
+IPSET_SCOPE = "REGIONAL"
 
 #
 # Only allow single instance of script to run
@@ -53,12 +54,8 @@ def get_ssm_params():
         Recursive=True)
     for p in ssm_response["Parameters"]:
         path_elements = p["Name"].lstrip("/").split("/")
-        del path_elements[0]
-        final_key = path_elements.pop(-1)
-        target_dict = result
-        for element in path_elements:
-            target_dict = target_dict.setdefault(element, {})
-        target_dict[final_key] = p["Value"]
+        result_key = path_elements.pop(-1)
+	result[result_key] = p 
     return result
             
 #
@@ -70,7 +67,7 @@ def existing_ipsets():
 
     next_marker = None
     while True:
-        params = { "Scope": "REGIONAL" }
+        params = { "Scope": IPSET_SCOPE }
         if next_marker:
             params["NextMarker"] = next_marker
         page = waf_client.list_ip_sets(**params)
@@ -197,7 +194,7 @@ for ipset_name in ipset_names:
     current_ipset = waf_client.get_ip_set(
         Name=ipset_name,
         Id=existing_ipsets[ipset_name]["Id"],
-        Scope=ssm_params["ipset_scope"],
+        Scope=IPSET_SCOPE,
     )
 
     description = "IPSet " + ipset_name + " updated by " + __file__ + " on " + socket.getfqdn() + " at " + str(datetime.datetime.now())
@@ -208,7 +205,7 @@ for ipset_name in ipset_names:
     
     waf_client.update_ip_set(
         Name=ipset_name,
-        Scope=ssm_params["ipset_scope"],
+        Scope=IPSET_SCOPE,
         Id=current_ipset["IPSet"]["Id"],
         Description=description,
         Addresses=ipset_cidrs,
