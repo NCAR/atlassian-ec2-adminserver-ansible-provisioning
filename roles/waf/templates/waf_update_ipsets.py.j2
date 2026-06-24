@@ -50,14 +50,24 @@ def check_pid():
 def get_ssm_params():
     result = {}
     ssm_response = ssm_client.get_parameters_by_path(
-        Path=SSM_PATH,
+        Path=SSM_PREFIX,
         Recursive=True)
     for p in ssm_response["Parameters"]:
         path_elements = p["Name"].lstrip("/").split("/")
-        result_key = path_elements.pop(-1)
-        result[result_key] = p["Value"]
+
+        # Remove the first two path elements, since these will be
+        # stack name and prefix ("infrastructure"); hacky
+        del path_elements[0]
+        del path_elements[0]
+
+        final_key = path_elements.pop(-1)
+        target_dict = result
+        for element in path_elements:
+            target_dict = target_dict.setdefault(element, {})
+        target_dict[final_key] = p["Value"]
     return result
-            
+
+
 #
 # Get dict of ipset names to definitions
 # Boto3 WAF apparently doesn't support paginators :(
