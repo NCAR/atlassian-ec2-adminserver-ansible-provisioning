@@ -155,12 +155,8 @@ logger.info( __file__  + " >>>>>>>>>> starting <<<<<<<<<<" )
 boto3.setup_default_session(region_name="{{ aws_region }}")
 ssm_client = boto3.client("ssm")
 ssm_params = get_ssm_params()
-if ssm_params["ipset_scope"] == "CLOUDFRONT":
-    ipset_region = "us-east-1"
-else:
-    ipset_region = "{{ aws_region }}"
-waf_client = boto3.client("wafv2", region_name=ipset_region)
 
+waf_client = boto3.client("wafv2", region_name="{{ aws_region }}")
 
 #
 # Iterate over the ipsets listed in the SSM param "waf_ipsets"
