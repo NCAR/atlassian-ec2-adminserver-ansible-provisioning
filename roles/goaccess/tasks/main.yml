@@ -28,7 +28,7 @@
     suites: "{{ ansible_facts['distribution_release'] }}"
     components:
       - main
-    signed_by: signed-by=https://deb.goaccess.io/gnugpg.key
+    signed_by: https://deb.goaccess.io/gnugpg.key
 
 - name: Install latest goaccess
   ansible.builtin.apt:
