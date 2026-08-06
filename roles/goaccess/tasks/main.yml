@@ -28,8 +28,12 @@
 
 - name: Add goaccess repository
   ansible.builtin.deb822_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/goaccess.asc] https://deb.goaccess.io/ {{ ansible_facts['lsb'].codename }} main"
-    state: present
+    name: goaccess
+    uris: https://deb.goaccess.io/
+    suites: "{{ ansible_facts['distribution_release'] }}"
+    components:
+      - main
+    signed_by: signed-by=/etc/apt/keyrings/goaccess.asc
 
 - name: Install latest goaccess
   ansible.builtin.apt:

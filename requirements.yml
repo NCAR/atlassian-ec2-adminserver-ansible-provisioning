@@ -1,10 +1,10 @@
 ---
 collections:
   - name: amazon.aws
-    version: "11.2.0"
+    version: "11.4.0"
   - name: ansible.posix
     version: "2.2.2"
   - name: checkmk.general
     version: "8.3.0"
   - name: community.general
-    version: "12.6.0"
+    version: "13.2.0"
