@@ -1,0 +1,10 @@
+# Stuff that should happen after everything else, on each run
+
+#- name: Run script to hold packages
+#  command: /usr/local/bin/hold_pkgs.sh
+
+- name: Update snap packages
+  command: /usr/bin/snap refresh
+
+- name: Disable automatic snap refresh
+  command: /usr/bin/snap refresh --hold=forever    

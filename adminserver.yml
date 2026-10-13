@@ -22,4 +22,4 @@
     - role: checkmk
     - role: apache
     - role: waf
-      
+    - role: post_run
