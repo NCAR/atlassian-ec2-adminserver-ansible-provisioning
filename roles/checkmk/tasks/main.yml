@@ -67,7 +67,11 @@
     src: upgradeable_snap_packages.sh
     dest: /usr/lib/check_mk_agent/local/upgradeable_snap_packages.sh
     mode: '0500'
-  
+
+- name: Fact for apt plugin interval directory path
+  ansible.builtin.set_fact:
+    mk_apt_directory: "/usr/lib/check_mk_agent/plugins/{{ checkmk_agent_apt_plugin_interval }}"
+    
 - name: Create plugin interval directory for apt plugin 
   ansible.builtin.file:
     path: "{{ mk_apt_directory }}"
