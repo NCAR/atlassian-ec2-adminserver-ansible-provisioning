@@ -10,6 +10,10 @@
       - jq
       - net-tools
       - tar
+
+- name: Disable unneeded services
+  ansible.builtin.include_tasks:
+    file: disable_unnecessary_services.yml
       
 - name: Customizations for root .bashrc
   ansible.builtin.blockinfile:
