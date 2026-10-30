@@ -2,8 +2,7 @@
 
 # Install custom packages from s3
 
-S3_PATH="{{ atl_s3_path }}"
-s3_pkg_base="$(dirname $S3_PATH)/packages"
+s3_pkg_base="s3://{{ s3_bucket }}/packages"
 
 #
 # apt packages
