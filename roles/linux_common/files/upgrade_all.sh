@@ -1,28 +1,21 @@
 #!/bin/bash
+# Upgrade all apt and snap packages, and reboot
+# Created by Ansible
 
-echo ">>>>> Updating snap packages <<<<<"
+echo ">>> ${0} Starting at $(date)"
+
+echo ">>> Updating snap packages"
 snap refresh
 
-echo ">>>>> Updating apt packages <<<<<"
+echo ">>>  Updating apt packages"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get -y dist-upgrade
+
+echo ">>>  Removing obsolete apt packages"
 apt-get -y autoremove
-systemctl daemon-reload
 
-#
-# This covers the kernel plus other related pkgs
-# 
-if test -e /var/run/reboot-required; then
-    ">>>>> Reboot is required; rebooting <<<<<"
-    shutdown -r
-    exit
-fi
+echo ">>> Rebooting"
+shutdown -r
 
-restart_services=$(needrestart -b | grep NEEDRESTART-SVC | awk '{print $2}')
-if test -z "$restart_services"; then
-    echo ">>>>> No services to restart <<<<<"
-else
-    echo ">>>>> Restarting services: ${restart_services} <<<<<" 
-    systemctl restart $restart_services
-fi
+echo ">>> ${0} Finished at $(date)"
